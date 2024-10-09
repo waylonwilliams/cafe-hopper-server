@@ -1,4 +1,6 @@
 # cafe-hopper-server
 
-`npm i
-npm run start`
+```
+npm i
+npm run start
+```
