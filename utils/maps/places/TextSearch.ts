@@ -11,7 +11,7 @@ import { PlaceType1 } from "@googlemaps/google-maps-services-js";
  * import { TextSearch } from "./utils/maps/places/TextSearch";
  */
 
-export const TextSearch = (location: string): Promise<TextSearchResponse> => {
+export const TextSearch = (query: string): Promise<TextSearchResponse> => {
   const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
   if (API_KEY === "") {
     throw new Error("API Key not set");
@@ -21,9 +21,13 @@ export const TextSearch = (location: string): Promise<TextSearchResponse> => {
     params: {
       location: "36.974117, -122.030792",
       radius: 5000,
-      query: location,
+      query: query,
       key: API_KEY,
       type: PlaceType1.cafe,
     },
   });
 };
+
+// Potential ideas for grabbing info:
+// Grab the image data from these places and place them in supabase for now.
+// Grab some reviews for some data, or we can just make up some reviews.
