@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { Client, PlaceType1, LatLng } from "@googlemaps/google-maps-services-js";
+import { TextSearch } from "../utils/maps/places/TextSearch";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -14,29 +14,31 @@ app.listen(3000, () => {
 });
 
 app.get("/maps/:search", (req: Request, res: Response) => {
-    const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
-    if (API_KEY === "") {
-        res.send("API_KEY is not set");
-        return;
-    }
-    
-    const location = req.params.search;
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
+  if (API_KEY === "") {
+    res.send("API_KEY is not set");
+    return;
+  }
 
-    const client = new Client({});
+  const location = req.params.search;
 
-    client.textSearch({
-        params: {
-            location: "36.974117, -122.030792",
-            radius: 5000,
-            query: location,
-            type: PlaceType1.cafe,
-            key: API_KEY,
-        }
-    }).then((r) => {
-        res.send(r.data.results);
-    }
-    ).catch((e) => {
-        res.send(e);
+  let places: any[] = [];
+
+  TextSearch(location)
+    .then((response) => {
+      response.data.results.forEach((result) => {
+        places.push({
+          name: result.name,
+          address: result.formatted_address,
+          location: result.geometry?.location,
+          rating: result.rating,
+          open: result.opening_hours?.open_now,
+        });
+      });
+      res.json({ places });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.send("Error");
     });
 });
-
