@@ -9,9 +9,15 @@ import { PlaceType1 } from "@googlemaps/google-maps-services-js";
  *
  * @example
  * import { TextSearch } from "./utils/maps/places/TextSearch";
+ *
+ * @param query - The search query.
+ * @param geolocation - The geolocation of the user (or some predefined location).
  */
 
-export const TextSearch = (query: string): Promise<TextSearchResponse> => {
+export const TextSearch = (
+  query: string,
+  geolocation?: string
+): Promise<TextSearchResponse> => {
   const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
   if (API_KEY === "") {
     throw new Error("API Key not set");
@@ -19,7 +25,7 @@ export const TextSearch = (query: string): Promise<TextSearchResponse> => {
 
   return MapsClient.textSearch({
     params: {
-      location: "36.974117, -122.030792",
+      location: geolocation || "36.974117, -122.030792", // santa cruz geolocation but we can change this later
       radius: 5000,
       query: query,
       key: API_KEY,
