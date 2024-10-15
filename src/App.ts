@@ -33,9 +33,10 @@ app.get("/maps/:search", (req: Request, res: Response) => {
           location: result.geometry?.location,
           rating: result.rating,
           open: result.opening_hours?.open_now,
+          image: result.photos ? result.photos[0].photo_reference : null,
         });
       });
-      res.json({ places });
+      res.json(places);
     })
     .catch((error) => {
       console.error(error);
