@@ -1,5 +1,7 @@
 import express, { Request, Response } from "express";
 import { TextSearch, GetPlaceDetails } from "../utils/maps/Places";
+import { PushCafesToSupabase } from "../utils/supabase/Cafe";
+import { Cafe } from "../utils/types";
 import { TextSearchResponse } from "@googlemaps/google-maps-services-js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -37,5 +39,22 @@ app.get("/maps/:search", async (req: Request, res: Response) => {
     places.push({ ...placeDetails.data.result, place_id: place.place_id });
   }
 
-  res.json(places);
+  let cafes: Cafe[] = [];
+  places.forEach((place) => {
+    const cafe: Cafe = {
+      id: place.place_id,
+      title: place.name,
+      address: place.formatted_address,
+      latitude: place.geometry.location.lat,
+      longitude: place.geometry.location.lng,
+      hours: place.opening_hours?.weekday_text
+        .join("\n")
+        .replace(/[ \u00A0\u2009\u202F]/g, ""), // get rid of all whitespace but preserve the newline characters
+    };
+    cafes.push(cafe);
+  });
+
+  await PushCafesToSupabase(cafes);
+
+  res.json(cafes);
 });
