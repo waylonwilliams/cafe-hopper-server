@@ -2,6 +2,7 @@ import { MapsClient } from "./Client";
 import type {
   PlaceDetailsResponse,
   PlacePhotoResponse,
+  PlacesNearbyResponse,
   TextSearchResponse,
 } from "@googlemaps/google-maps-services-js";
 import { PlaceType1 } from "@googlemaps/google-maps-services-js";
@@ -32,6 +33,25 @@ export const TextSearch = (
       location: geolocation || "36.974117, -122.030792", // santa cruz geolocation but we can change this later
       radius: 5000,
       query: query,
+      key: API_KEY,
+      type: PlaceType1.cafe,
+    },
+  });
+};
+
+export const NearbySearch = (
+  location: string,
+  radius: number
+): Promise<PlacesNearbyResponse> => {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
+  if (API_KEY === "") {
+    throw new Error("API Key not set");
+  }
+
+  return MapsClient.placesNearby({
+    params: {
+      location: location,
+      radius: radius,
       key: API_KEY,
       type: PlaceType1.cafe,
     },
