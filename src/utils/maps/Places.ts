@@ -39,6 +39,17 @@ export const TextSearch = (
   });
 };
 
+/**
+ * @name NearbySearch
+ * @description
+ * The Google Maps Nearby Search API.
+ *
+ * @example
+ * import { NearbySearch } from "./utils/maps/places/NearbySearch";
+ *
+ * @param location - The location of the user.
+ * @param radius - The radius of the search.
+ */
 export const NearbySearch = (
   location: string,
   radius: number
@@ -62,6 +73,16 @@ export const NearbySearch = (
 // Grab the image data from these places and place them in supabase for now.
 // Grab some reviews for some data, or we can just make up some reviews.
 
+/**
+ * @name GetPlacePhoto
+ * @description
+ * The Google Maps Place Photo API.
+ *
+ * @example
+ * import { GetPlacePhoto } from "./utils/maps/places/GetPlacePhoto";
+ *
+ * @param photo_reference - The photo reference.
+ */
 export const GetPlacePhoto = (
   photo_reference: string
 ): Promise<PlacePhotoResponse> => {
@@ -81,6 +102,16 @@ export const GetPlacePhoto = (
   });
 };
 
+/**
+ * @name GetPlaceDetails
+ * @description
+ * The Google Maps Place Details API.
+ *
+ * @example
+ * import { GetPlaceDetails } from "./utils/maps/places/GetPlaceDetails";
+ *
+ * @param place_id - The place ID.
+ */
 export const GetPlaceDetails = (
   place_id: string | undefined
 ): Promise<PlaceDetailsResponse> => {
@@ -106,7 +137,3 @@ export const GetPlaceDetails = (
     },
   });
 };
-
-// export const GetPlaceHours = (placeDetails: PlaceDetailsResponse) => {
-//   return placeDetails.data.result.opening_hours;
-// };

@@ -1,10 +1,10 @@
 import express, { Request, Response } from "express";
-import { TextSearch, GetPlaceDetails } from "../utils/maps/Places";
+import { TextSearch, GetPlaceDetails } from "@/utils/maps/Places";
 import {
   PushCafesToSupabase,
   CreateNewCafesFromPlaceData,
-} from "../utils/supabase/Cafe";
-import { Cafe, PlaceDataWithId } from "../utils/types";
+} from "@/utils/supabase/Cafe";
+import { Cafe, PlaceDataWithId } from "@/utils/types";
 import { TextSearchResponse } from "@googlemaps/google-maps-services-js";
 import dotenv from "dotenv";
 dotenv.config();
