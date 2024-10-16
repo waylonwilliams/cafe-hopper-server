@@ -77,7 +77,7 @@ export const GetPlaceDetails = (
       place_id: place_id,
       key: process.env.GOOGLE_MAPS_API_KEY || "",
       fields: [
-        "opening_hours",
+        "opening_hours/weekday_text",
         "name",
         "formatted_address",
         "geometry",
