@@ -4,7 +4,7 @@ import {
   PushCafesToSupabase,
   CreateNewCafesFromPlaceData,
 } from "@/utils/supabase/Cafe";
-import { Cafe, PlaceDataWithId } from "@/utils/types";
+import { PlaceDataWithId } from "@/utils/types";
 import { TextSearchResponse } from "@googlemaps/google-maps-services-js";
 import dotenv from "dotenv";
 dotenv.config();
