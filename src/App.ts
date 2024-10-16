@@ -1,7 +1,10 @@
 import express, { Request, Response } from "express";
 import { TextSearch, GetPlaceDetails } from "../utils/maps/Places";
-import { PushCafesToSupabase } from "../utils/supabase/Cafe";
-import { Cafe } from "../utils/types";
+import {
+  PushCafesToSupabase,
+  CreateNewCafesFromPlaceData,
+} from "../utils/supabase/Cafe";
+import { Cafe, PlaceDataWithId } from "../utils/types";
 import { TextSearchResponse } from "@googlemaps/google-maps-services-js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -21,7 +24,7 @@ app.listen(PORT, () => {
 app.get("/maps/:search", async (req: Request, res: Response) => {
   const location = req.params.search;
 
-  let places: any[] = [];
+  let places: PlaceDataWithId[] = [];
 
   const textSearchResponse: TextSearchResponse = await TextSearch(location);
 
@@ -35,24 +38,20 @@ app.get("/maps/:search", async (req: Request, res: Response) => {
 
   for (let i = 0; i < results.length; i++) {
     const place = results[i];
+    if (!place.place_id) {
+      res.status(400).json({ error: "place_id is required" });
+      return;
+    }
     const placeDetails = await GetPlaceDetails(place.place_id);
     places.push({ ...placeDetails.data.result, place_id: place.place_id });
   }
 
-  let cafes: Cafe[] = [];
-  places.forEach((place) => {
-    const cafe: Cafe = {
-      id: place.place_id,
-      title: place.name,
-      address: place.formatted_address,
-      latitude: place.geometry.location.lat,
-      longitude: place.geometry.location.lng,
-      hours: place.opening_hours?.weekday_text
-        .join("\n")
-        .replace(/[ \u00A0\u2009\u202F]/g, ""), // get rid of all whitespace but preserve the newline characters
-    };
-    cafes.push(cafe);
-  });
+  const cafes = CreateNewCafesFromPlaceData(places);
+
+  if (cafes instanceof Error) {
+    res.status(400).json({ error: cafes.message });
+    return;
+  }
 
   await PushCafesToSupabase(cafes);
 

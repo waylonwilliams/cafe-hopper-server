@@ -3,6 +3,8 @@
  * We can change these as our project grows.
  */
 
+import { PlaceData } from "@googlemaps/google-maps-services-js";
+
 /**
  *
  * @name Cafe
@@ -20,3 +22,16 @@ export type Cafe = {
   longitude: number;
   hours: string;
 };
+
+/**
+ *
+ * @name PlaceDataWithId
+ * @description
+ * The PlaceDataWithId type, basically just PlaceData but with the place_id for supabase.
+ *
+ * @example
+ * import { PlaceDataWithId } from "./utils/types";
+ **/
+export type PlaceDataWithId = {
+  place_id: string;
+} & Partial<PlaceData>;
