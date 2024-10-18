@@ -39,3 +39,20 @@ export function CreateNewCafesFromPlaceData(
 
   return cafes;
 }
+
+export async function QueryCafesByName(
+  name: string
+): Promise<Cafe[] | PostgrestError> {
+  const supabase = serviceClient();
+
+  return await supabase
+    .from("Cafes")
+    .select("*")
+    .ilike("title", `%${name}%`)
+    .then((response) => {
+      if (response.error) {
+        return response.error;
+      }
+      return response.data;
+    });
+}

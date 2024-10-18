@@ -3,6 +3,7 @@ import { TextSearch, GetPlaceDetails } from "@/utils/maps/Places";
 import {
   PushCafesToSupabase,
   CreateNewCafesFromPlaceData,
+  QueryCafesByName,
 } from "@/utils/supabase/Cafe";
 import { PlaceDataWithId } from "@/utils/types";
 import { TextSearchResponse } from "@googlemaps/google-maps-services-js";
@@ -54,6 +55,19 @@ app.get("/maps/:search", async (req: Request, res: Response) => {
   }
 
   await PushCafesToSupabase(cafes);
+
+  res.json(cafes);
+});
+
+app.get("/cafes/search/:name", async (req: Request, res: Response) => {
+  const name = req.params.name;
+
+  const cafes = await QueryCafesByName(name);
+
+  if (cafes instanceof Error) {
+    res.status(400).json({ error: cafes.message });
+    return;
+  }
 
   res.json(cafes);
 });
