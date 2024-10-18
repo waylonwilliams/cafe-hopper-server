@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { TextSearch, GetPlaceDetails } from "@/utils/maps/Places";
 import {
-  PushCafesToSupabase,
+  PushNewCafesToSupabase,
   CreateNewCafesFromPlaceData,
   QueryCafesByName,
 } from "@/utils/supabase/Cafe";
@@ -22,6 +22,12 @@ app.listen(PORT, () => {
   console.log(`Cafe Hopper Server listening at http://localhost:${PORT}`);
 });
 
+/**
+ * @name /maps/:search
+ * @description
+ * The endpoint for searching for cafes on Google Maps using Places API.
+ * This is likely not to be used in production, but it's a good way to test
+ */
 app.get("/maps/:search", async (req: Request, res: Response) => {
   const location = req.params.search;
 
@@ -54,7 +60,7 @@ app.get("/maps/:search", async (req: Request, res: Response) => {
     return;
   }
 
-  const err = await PushCafesToSupabase(cafes);
+  const err = await PushNewCafesToSupabase(cafes);
 
   if (err) {
     res.status(400).json({ error: err.message });
@@ -64,54 +70,64 @@ app.get("/maps/:search", async (req: Request, res: Response) => {
   res.json(cafes);
 });
 
+/**
+ * @name /cafes/search/:name
+ * @description
+ * The endpoint for searching for cafes on Google Maps using Places API and Supabase.
+ * Whatever is not in Supabase will be pushed to Supabase and returned to the client.
+ * This is probably what we will use.
+ */
 app.get("/cafes/search/:name", async (req: Request, res: Response) => {
   const name = req.params.name;
 
-  const cafes = await QueryCafesByName(name);
+  const cafesSupabase = await QueryCafesByName(name);
 
-  // cases:
-  // if error, return 400
-  // if no cafes, handle that
-  // if cafes, return them
-
-  if (cafes instanceof Error) {
-    res.status(400).json({ error: cafes.message });
+  if (cafesSupabase instanceof Error) {
+    res.status(400).json({ error: cafesSupabase.message });
     return;
   }
 
-  if (cafes.length === 0) {
-    // no cafes found, lets use places api to find some
-    // and then return them
-    const textSearchResponse: TextSearchResponse = await TextSearch(name);
-    const results = textSearchResponse.data.results;
-    let places: PlaceDataWithId[] = [];
-    for (let i = 0; i < results.length; i++) {
-      const place = results[i];
-      if (!place.place_id) {
-        res.status(400).json({ error: "place_id is required" });
-        return;
-      }
-      const placeDetails = await GetPlaceDetails(place.place_id);
-      places.push({ ...placeDetails.data.result, place_id: place.place_id });
-    }
-
-    const cafes = CreateNewCafesFromPlaceData(places);
-
-    if (cafes instanceof Error) {
-      res.status(400).json({ error: cafes.message });
+  const textSearchResponse: TextSearchResponse = await TextSearch(name);
+  const results = textSearchResponse.data.results;
+  let places: PlaceDataWithId[] = [];
+  for (let i = 0; i < results.length; i++) {
+    const place = results[i];
+    if (!place.place_id) {
+      res.status(400).json({ error: "place_id is required" });
       return;
     }
+    const placeDetails = await GetPlaceDetails(place.place_id);
+    places.push({ ...placeDetails.data.result, place_id: place.place_id });
+  }
 
-    const err = await PushCafesToSupabase(cafes);
+  const cafesPlacesAPI = CreateNewCafesFromPlaceData(places);
 
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-
-    res.json(cafes);
+  if (cafesPlacesAPI instanceof Error) {
+    res.status(400).json({ error: cafesPlacesAPI.message });
     return;
   }
 
-  res.json(cafes);
+  // set A = { set of cafes from places api }
+  // set B = { set of cafes from supabase }
+  // set C = A - B
+  // push C to supabase, return A + C
+
+  // We want to push all the cafes in set A that are not in set B to supabase
+  let cafesToPush = cafesPlacesAPI.filter((cafe) => {
+    return !cafesSupabase.find((cafeSupabase) => cafeSupabase.id === cafe.id);
+  });
+
+  if (cafesToPush.length === 0) {
+    res.json(cafesSupabase);
+    return;
+  }
+
+  const err = await PushNewCafesToSupabase(cafesToPush);
+
+  if (err) {
+    res.status(400).json({ error: err.message });
+    return;
+  }
+
+  res.json([...cafesSupabase, ...cafesToPush]);
 });

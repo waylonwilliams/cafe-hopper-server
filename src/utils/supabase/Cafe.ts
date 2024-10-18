@@ -10,7 +10,7 @@ import { PostgrestError } from "@supabase/supabase-js";
  * @description
  * Push cafes to Supabase.
  */
-export async function PushCafesToSupabase(
+export async function PushNewCafesToSupabase(
   cafes: Cafe[]
 ): Promise<PostgrestError | undefined> {
   const supabase = serviceClient();

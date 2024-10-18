@@ -32,7 +32,7 @@ export const TextSearch = (
   return MapsClient.textSearch({
     params: {
       location: geolocation || "36.974117, -122.030792", // santa cruz geolocation but we can change this later
-      radius: 5000,
+      radius: 1000,
       query: query,
       key: API_KEY,
       type: PlaceType1.cafe,
