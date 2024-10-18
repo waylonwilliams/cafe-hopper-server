@@ -15,7 +15,25 @@ export async function PushCafesToSupabase(
 ): Promise<PostgrestError | undefined> {
   const supabase = serviceClient();
 
-  const { error } = await supabase.from("Cafes").insert(cafes);
+  const cafeIds = cafes.map((cafe) => cafe.id);
+
+  const { data: existingCafes, error: existingCafesError } = await supabase
+    .from("Cafes")
+    .select("id")
+    .in("id", cafeIds);
+
+  if (existingCafesError) {
+    return existingCafesError;
+  }
+
+  const existingCafeIds = existingCafes?.map((cafe) => cafe.id) || [];
+  const newCafes = cafes.filter((cafe) => !existingCafeIds.includes(cafe.id));
+
+  if (newCafes.length === 0) {
+    return;
+  }
+
+  const { error } = await supabase.from("Cafes").insert(newCafes);
 
   // throw an error if there is one
   if (error) {
@@ -66,12 +84,10 @@ export function CreateNewCafesFromPlaceData(
  * @example
  * const cafes = await QueryCafesByName("verve");
  */
-export async function QueryCafesByName(
-  name: string
-): Promise<Cafe[] | PostgrestError> {
+export async function QueryCafesByName(name: string): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
 
-  return await supabase
+  const data = await supabase
     .from("Cafes")
     .select("*")
     .ilike("title", `%${name}%`)
@@ -81,4 +97,10 @@ export async function QueryCafesByName(
       }
       return response.data;
     });
+
+  if ("error" in data) {
+    return new Error("Error querying cafes");
+  }
+
+  return data as Cafe[];
 }
