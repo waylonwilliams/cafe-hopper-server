@@ -2,6 +2,14 @@ import { serviceClient } from "./Client";
 import { Cafe, PlaceDataWithId } from "../types";
 import { PostgrestError } from "@supabase/supabase-js";
 
+/**
+ * @author Arveen Azhand
+ * @name PushCafesToSupabase
+ * @param cafes
+ * @returns An error if there is one.
+ * @description
+ * Push cafes to Supabase.
+ */
 export async function PushCafesToSupabase(
   cafes: Cafe[]
 ): Promise<PostgrestError | undefined> {
@@ -15,6 +23,14 @@ export async function PushCafesToSupabase(
   }
 }
 
+/**
+ * @author Arveen Azhand
+ * @name CreateNewCafesFromPlaceData
+ * @param places
+ * @returns The cafes created from the place data, or an error if there is one.
+ * @description
+ * Create new cafes from place API data.
+ */
 export function CreateNewCafesFromPlaceData(
   places: PlaceDataWithId[]
 ): Cafe[] | Error {
@@ -40,6 +56,16 @@ export function CreateNewCafesFromPlaceData(
   return cafes;
 }
 
+/**
+ * @author Arveen Azhand
+ * @name QueryCafesByName
+ * @param name - The name of the cafe to query.
+ * @returns The cafes that match the name, or an error if there is one.
+ * @description
+ * Query cafes by name.
+ * @example
+ * const cafes = await QueryCafesByName("verve");
+ */
 export async function QueryCafesByName(
   name: string
 ): Promise<Cafe[] | PostgrestError> {

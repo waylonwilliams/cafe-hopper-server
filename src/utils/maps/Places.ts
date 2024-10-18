@@ -8,6 +8,7 @@ import type {
 import { PlaceType1 } from "@googlemaps/google-maps-services-js";
 
 /**
+ * @author Arveen Azhand
  * @name TextSearch
  * @description
  * The Google Maps Text Search API.
@@ -40,6 +41,7 @@ export const TextSearch = (
 };
 
 /**
+ * @author Arveen Azhand
  * @name NearbySearch
  * @description
  * The Google Maps Nearby Search API.
@@ -74,6 +76,7 @@ export const NearbySearch = (
 // Grab some reviews for some data, or we can just make up some reviews.
 
 /**
+ * @author Arveen Azhand
  * @name GetPlacePhoto
  * @description
  * The Google Maps Place Photo API.
@@ -103,6 +106,7 @@ export const GetPlacePhoto = (
 };
 
 /**
+ * @author Arveen Azhand
  * @name GetPlaceDetails
  * @description
  * The Google Maps Place Details API.
