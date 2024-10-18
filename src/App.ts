@@ -8,7 +8,6 @@ import {
 import { PlaceDataWithId } from "@/utils/types";
 import { TextSearchResponse } from "@googlemaps/google-maps-services-js";
 import dotenv from "dotenv";
-import { PostgrestError } from "@supabase/supabase-js";
 dotenv.config();
 
 const app = express();
@@ -20,7 +19,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log("Example app listening at http://localhost:3000");
+  console.log(`Cafe Hopper Server listening at http://localhost:${PORT}`);
 });
 
 app.get("/maps/:search", async (req: Request, res: Response) => {
