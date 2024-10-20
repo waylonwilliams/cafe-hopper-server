@@ -1,8 +1,8 @@
 import { Router } from "express";
-import cafeRoutes from "./cafeRoutes";
+import CafeRoutes from "./CafeRoutes";
 
 const router = Router();
 
-router.use("/cafes", cafeRoutes);
+router.use("/cafes", CafeRoutes);
 
 export default router;
