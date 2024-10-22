@@ -1,4 +1,4 @@
-import { MapsClient } from "./Client";
+import { MapsClient } from "@/utils/maps/Client";
 import type {
   PlaceDetailsResponse,
   PlacePhotoResponse,

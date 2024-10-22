@@ -1,5 +1,5 @@
-import { serviceClient } from "./Client";
-import { Cafe, PlaceDataWithId } from "../types";
+import { serviceClient } from "@/utils/supabase/Client";
+import { Cafe, PlaceDataWithId } from "@types";
 import { PostgrestError } from "@supabase/supabase-js";
 
 /**
