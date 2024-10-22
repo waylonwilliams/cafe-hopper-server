@@ -1,11 +1,15 @@
-import express, { Request, Response } from "express";
+import express from "express";
+import dotenv from "dotenv";
+import routes from "routes";
+
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
-});
+app.use(express.json());
+app.use("/", routes);
 
-app.listen(3000, () => {
-  console.log("Example app listening at http://localhost:3000");
+app.listen(PORT, () => {
+  console.log(`Cafe Hopper Server listening at http://localhost:${PORT}`);
 });

@@ -4,10 +4,14 @@
   "main": "dist/App.js",
   "scripts": {
     "build": "tsc",
-    "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/App.ts"
+    "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node -r tsconfig-paths/register' src/App.ts"
   },
   "dependencies": {
-    "express": "^4.21.1"
+    "@googlemaps/google-maps-services-js": "^3.4.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
@@ -15,5 +19,8 @@
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
+  },
+  "overrides": {
+    "whatwg-url": "13.0.0"
   }
 }
