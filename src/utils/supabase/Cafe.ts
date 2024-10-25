@@ -1,6 +1,5 @@
-import { serviceClient } from "@/utils/supabase/Client";
-import { Cafe, PlaceDataWithId, CafeSearchRequest } from "@types";
-import { PostgrestError } from "@supabase/supabase-js";
+import { serviceClient } from '@/utils/supabase/Client';
+import { Cafe, PlaceDataWithId, CafeSearchRequest } from '@types';
 
 /**
  * @author Arveen Azhand
@@ -10,23 +9,18 @@ import { PostgrestError } from "@supabase/supabase-js";
  * @description
  * Push cafes to Supabase.
  */
-export async function PushNewCafesToSupabase(
-  cafes: Cafe[]
-): Promise<Error | Cafe[]> {
+export async function PushNewCafesToSupabase(cafes: Cafe[]): Promise<Error | Cafe[]> {
   const supabase = serviceClient();
 
   const cafeIds = cafes.map((cafe) => cafe.id);
 
   const { data: existingCafes, error: existingCafesError } = await supabase
-    .from("cafes")
-    .select("id")
-    .in("id", cafeIds);
+    .from('cafes')
+    .select('id')
+    .in('id', cafeIds);
 
   if (existingCafesError) {
-    return new Error(
-      "Error when attempting to find existing cafes: " +
-        existingCafesError.message
-    );
+    return new Error('Error when attempting to find existing cafes: ' + existingCafesError.message);
   }
 
   const existingCafeIds = existingCafes?.map((cafe) => cafe.id) || [];
@@ -36,11 +30,11 @@ export async function PushNewCafesToSupabase(
     return cafes;
   }
 
-  const { error } = await supabase.from("cafes").insert(newCafes);
+  const { error } = await supabase.from('cafes').insert(newCafes);
 
   // throw an error if there is one
   if (error) {
-    return new Error("Error inserting cafes: " + error.message);
+    return new Error('Error inserting cafes: ' + error.message);
   }
 
   return cafes;
@@ -54,24 +48,20 @@ export async function PushNewCafesToSupabase(
  * @description
  * Create new cafes from place API data.
  */
-export function CreateNewCafesFromPlaceData(
-  places: PlaceDataWithId[]
-): Cafe[] | Error {
-  let cafes: Cafe[] = [];
+export function CreateNewCafesFromPlaceData(places: PlaceDataWithId[]): Cafe[] | Error {
+  const cafes: Cafe[] = [];
   places.forEach((place) => {
     if (!place.name) {
-      return new Error("Name is required");
+      return new Error('Name is required');
     }
     const cafe: Cafe = {
       id: place.place_id,
       title: place.name,
-      address: place.formatted_address || "No address found",
+      address: place.formatted_address || 'No address found',
       latitude: place.geometry?.location.lat || 0, // should probably set this to a better number but will set it to 0 for now
       longitude: place.geometry?.location.lng || 0,
       hours:
-        place.opening_hours?.weekday_text
-          .join("\n")
-          .replace(/[ \u00A0\u2009\u202F]/g, "") || "", // get rid of all whitespace but preserve the newline characters
+        place.opening_hours?.weekday_text.join('\n').replace(/[ \u00A0\u2009\u202F]/g, '') || '', // get rid of all whitespace but preserve the newline characters
     };
     cafes.push(cafe);
   });
@@ -93,9 +83,9 @@ export async function QueryCafesByName(name: string): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
 
   const data = await supabase
-    .from("cafes")
-    .select("*")
-    .ilike("title", `%${name}%`)
+    .from('cafes')
+    .select('*')
+    .ilike('title', `%${name}%`)
     .then((response) => {
       if (response.error) {
         return response.error;
@@ -103,8 +93,8 @@ export async function QueryCafesByName(name: string): Promise<Cafe[] | Error> {
       return response.data;
     });
 
-  if ("error" in data) {
-    return new Error("Error querying cafes");
+  if ('error' in data) {
+    return new Error('Error querying cafes');
   }
 
   return data as Cafe[];
@@ -135,7 +125,7 @@ function getBoundingBox(lat: number, lng: number, radius: number) {
 
 function calculateDistance(
   userLocation: { lat: number; lng: number },
-  cafeLocation: { lat: number; lng: number }
+  cafeLocation: { lat: number; lng: number },
 ): number {
   const R = 6371; // Earth's radius in kilometers
   const lat1 = userLocation.lat;
@@ -149,25 +139,21 @@ function calculateDistance(
   const a =
     0.5 -
     Math.cos(dLat) / 2 +
-    (Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      (1 - Math.cos(dLon))) /
+    (Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * (1 - Math.cos(dLon))) /
       2;
 
   return R * 2 * Math.asin(Math.sqrt(a));
 }
 
-export async function DynamicCafeQuery(
-  req: CafeSearchRequest
-): Promise<Cafe[] | Error> {
+export async function DynamicCafeQuery(req: CafeSearchRequest): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
   const { query, geolocation, radius, openNow, tags, location } = req;
 
   // dynamic query based on the request
-  let cafesQuery = supabase.from("cafes").select("*");
+  let cafesQuery = supabase.from('cafes').select('*');
 
   if (query) {
-    cafesQuery = cafesQuery.ilike("title", `%${query}%`);
+    cafesQuery = cafesQuery.ilike('title', `%${query}%`);
   }
 
   if (geolocation && radius) {
@@ -175,29 +161,29 @@ export async function DynamicCafeQuery(
     const { minLat, maxLat, minLng, maxLng } = getBoundingBox(lat, lng, radius);
 
     cafesQuery = cafesQuery
-      .gte("latitude", minLat)
-      .lte("latitude", maxLat)
-      .gte("longitude", minLng)
-      .lte("longitude", maxLng);
+      .gte('latitude', minLat)
+      .lte('latitude', maxLat)
+      .gte('longitude', minLng)
+      .lte('longitude', maxLng);
   }
 
   if (openNow) {
-    const currentTime = new Date().getHours();
+    // const currentTime = new Date().getHours();
     // have to figure this out somehow.
   }
 
   if (location) {
-    cafesQuery = cafesQuery.ilike("address", `%${location}%`);
+    cafesQuery = cafesQuery.ilike('address', `%${location}%`);
   }
 
   if (tags && tags.length > 0) {
-    cafesQuery = cafesQuery.contains("tags", tags);
+    cafesQuery = cafesQuery.contains('tags', tags);
   }
 
   const { data, error } = await cafesQuery;
 
   if (error) {
-    return new Error("Error querying cafes");
+    return new Error('Error querying cafes');
   }
 
   // we should sort the cafes by priority:
@@ -209,8 +195,8 @@ export async function DynamicCafeQuery(
     const titleA = a.title.toLowerCase();
     const titleB = b.title.toLowerCase();
     const lowerCaseQuery = query?.toLowerCase();
-    const titleAMatch = titleA.includes(lowerCaseQuery || "");
-    const titleBMatch = titleB.includes(lowerCaseQuery || "");
+    const titleAMatch = titleA.includes(lowerCaseQuery || '');
+    const titleBMatch = titleB.includes(lowerCaseQuery || '');
     if (titleAMatch && !titleBMatch) {
       return -1;
     }

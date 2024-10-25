@@ -20,7 +20,7 @@ type Cafe = {
   latitude: number;
   longitude: number;
   hours: string;
-}
+};
 ```
 
 Cafe is just a type that represents the Cafe schema in Supabase. As we add/remove columns from the table, we should remember to update the type fields accordingly.
@@ -52,7 +52,7 @@ These will be the options that we can set for the user, and will be sent to the 
 
 ## Routes
 
-***POST*** '/cafes/search'
+**_POST_** '/cafes/search'
 
 - **Query Params**
   - 'query' - The search query that the user is looking for, could be name, address, etc..

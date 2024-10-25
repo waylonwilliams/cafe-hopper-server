@@ -3,7 +3,7 @@
  * We can change these as our project grows.
  */
 
-import { PlaceData } from "@googlemaps/google-maps-services-js";
+import { PlaceData } from '@googlemaps/google-maps-services-js';
 
 /**
  *
