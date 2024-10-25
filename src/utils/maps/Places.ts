@@ -6,6 +6,7 @@ import type {
   TextSearchResponse,
 } from "@googlemaps/google-maps-services-js";
 import { PlaceType1 } from "@googlemaps/google-maps-services-js";
+import { CafeSearchRequest } from "@/utils/types";
 
 /**
  * @author Arveen Azhand
@@ -34,6 +35,25 @@ export const TextSearch = (
       location: geolocation || "36.974117, -122.030792", // santa cruz geolocation but we can change this later
       radius: 1000,
       query: query,
+      key: API_KEY,
+      type: PlaceType1.cafe,
+    },
+  });
+};
+
+export const TextSearchV2 = (
+  cafeSearchReq: CafeSearchRequest
+): Promise<TextSearchResponse> => {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
+  if (API_KEY === "") {
+    throw new Error("API Key not set");
+  }
+
+  return MapsClient.textSearch({
+    params: {
+      location: cafeSearchReq.location || "36.96271, -122.00222", // santa cruz geolocation but we can change this later
+      radius: cafeSearchReq.radius || 500,
+      query: cafeSearchReq.query || "cafe", // default to cafe if no query set explicitly
       key: API_KEY,
       type: PlaceType1.cafe,
     },

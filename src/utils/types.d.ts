@@ -12,7 +12,7 @@ import { PlaceData } from "@googlemaps/google-maps-services-js";
  * The Cafe type.
  *
  * @example
- * import { Cafe } from "./utils/types";
+ * import { Cafe } from "@/utils/types";
  **/
 export type Cafe = {
   id: string;
@@ -21,6 +21,7 @@ export type Cafe = {
   latitude: number;
   longitude: number;
   hours: string;
+  tags?: string[];
 };
 
 /**
@@ -35,3 +36,36 @@ export type Cafe = {
 export type PlaceDataWithId = {
   place_id: string;
 } & Partial<PlaceData>;
+
+/**
+ * @name CafeSearchRequest
+ * @description
+ * The CafeSearchRequest type.
+ *
+ * @example
+ * import { CafeSearchRequest } from "@/utils/types";
+ */
+export type CafeSearchRequest = {
+  query?: string;
+  radius?: number | 1000;
+  location?: string;
+  geolocation?: {
+    lat: number;
+    lng: number;
+  };
+  openNow?: boolean | undefined;
+  tags?: string[];
+};
+
+/**
+ * @name CafeSearchResponse
+ * @description
+ * The CafeSearchResponse type.
+ *
+ * @example
+ * import { CafeSearchResponse } from "@/utils/types";
+ */
+export type CafeSearchResponse = {
+  cafes: Cafe[];
+  error: string;
+};
