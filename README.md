@@ -27,12 +27,12 @@ type Cafe = {
 
 Cafe is just a type that represents the Cafe schema in Supabase. As we add/remove columns from the table, we should remember to update the type fields accordingly.
 
-id: string - The unique identifier for the cafe.
-title: string - The name of the cafe.
-address: string - The address of the cafe.
-latitude: number - The latitude of the cafe.
-longitude: number - The longitude of the cafe.
-hours: string - The hours of the cafe, this will be a string in a format Day:XX:XX-XX:XX\nDay:XX:XX-XX:XX\n... where Day is the day of the week and XX:XX-XX:XX is the opening and closing time for that day. You can parse this string by splitting on \n and then splitting on : to get the day and time.
+- id: string - The unique identifier for the cafe.
+- title: string - The name of the cafe.
+- address: string - The address of the cafe.
+- latitude: number - The latitude of the cafe.
+- longitude: number - The longitude of the cafe.
+- hours: string - The hours of the cafe, this will be a string in a format `Day:XX:XX-XX:XX\nDay:XX:XX-XX:XX\n...` where `Day` is the day of the week and `XX:XX-XX:XX` is the opening and closing time for that day. You can parse this string by splitting on `\n` and then splitting on `:` to get the day and time.
 
 ### CafeSearchRequest
 
