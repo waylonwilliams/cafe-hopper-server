@@ -194,16 +194,10 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       tags: req.body.tags,
     };
 
-    // Run text search first, get places from Google Places API
-    // Then we can uses the places id to query our supabase
-    // get the cafes from supabase
-    // and then check if tags are provided
-    // if they are, return the cafes that match the tags
-    // if not, return all cafes found under other parameters and also add the new cafes to supabase if found
-
     const textSearchResponse = await TextSearchV2(cafeRequest);
     const results = textSearchResponse.data.results;
     const places: PlaceDataWithId[] = [];
+
     for (let i = 0; i < results.length; i++) {
       const place = results[i];
       if (!place.place_id) {

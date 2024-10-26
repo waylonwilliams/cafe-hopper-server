@@ -220,6 +220,15 @@ export async function DynamicCafeQuery(req: CafeSearchRequest): Promise<Cafe[] |
   return sortedCafes as Cafe[];
 }
 
+/**
+ * @name GetCafesByIDAndQuery
+ * @param ids - The ids of the cafes to query.
+ * @param req - The request object.
+ * @returns The cafes that match the query, or an error if there is one.
+ * @description
+ *
+ * Get cafes by id and query.
+ */
 export async function GetCafesByIDAndQuery(
   ids: string[],
   req: CafeSearchRequest,
