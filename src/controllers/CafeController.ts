@@ -6,6 +6,7 @@ import {
   DynamicCafeQuery,
   PushNewCafesToSupabase,
   GetCafesByIDAndQuery,
+  calculateDistance,
 } from '@/utils/supabase/Cafe';
 import { PlaceDataWithId, CafeSearchRequest, CafeSearchResponse, Cafe } from '@/utils/types';
 
@@ -192,6 +193,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       geolocation: req.body.geolocation,
       openNow: req.body.openNow,
       tags: req.body.tags,
+      sortBy: req.body.sortBy,
     };
 
     const textSearchResponse = await TextSearchV2(cafeRequest);
@@ -240,6 +242,40 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
         res.status(400).json({ error: err.message });
         throw err;
       }
+    }
+
+    const response = [...cafesSupabase, ...cafesToPush];
+
+    // Sort the response based on the sortBy parameter again if we found new cafes
+    const { sortBy, geolocation, query } = cafeRequest;
+    if (sortBy === 'distance') {
+      const userLocation = geolocation;
+      if (userLocation) {
+        response.sort((a, b) => {
+          const cafeALocation = { lat: a.latitude, lng: a.longitude };
+          const cafeBLocation = { lat: b.latitude, lng: b.longitude };
+          const distanceA = calculateDistance(userLocation, cafeALocation);
+          const distanceB = calculateDistance(userLocation, cafeBLocation);
+          return distanceA - distanceB;
+        });
+      }
+    }
+
+    if (sortBy === 'relevance') {
+      const lowerCaseQuery = query?.toLowerCase();
+      response.sort((a, b) => {
+        const titleA = a.title.toLowerCase();
+        const titleB = b.title.toLowerCase();
+        const titleAMatch = titleA.includes(lowerCaseQuery || '');
+        const titleBMatch = titleB.includes(lowerCaseQuery || '');
+        if (titleAMatch && !titleBMatch) {
+          return -1;
+        }
+        if (!titleAMatch && titleBMatch) {
+          return 1;
+        }
+        return 0;
+      });
     }
 
     res.json([...cafesSupabase, ...cafesToPush]);

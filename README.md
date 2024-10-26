@@ -47,10 +47,11 @@ type CafeSearchRequest = {
   };
   openNow?: boolean | undefined;
   tags?: string[];
+  sortBy?: 'relevance' | 'distance';
 };
 ```
 
-These will be the options that we can set for the user, and will be sent to the backend to figure out what cafes to return.
+These will be the options that we can set for the user, and will be sent to the backend to figure out what cafes to return. Note that sortBy can be either 'relevance' or 'distance'. If it is 'relevance', then we will sort by the relevance of the query. If it is 'distance', then we will sort by the distance from the user's location.
 
 ## Routes
 

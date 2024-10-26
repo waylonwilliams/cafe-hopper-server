@@ -123,7 +123,7 @@ function getBoundingBox(lat: number, lng: number, radius: number) {
   };
 }
 
-function calculateDistance(
+export function calculateDistance(
   userLocation: { lat: number; lng: number },
   cafeLocation: { lat: number; lng: number },
 ): number {
@@ -235,7 +235,7 @@ export async function GetCafesByIDAndQuery(
 ): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
 
-  const { query, geolocation, radius, tags, location } = req;
+  const { query, geolocation, radius, tags, location, sortBy } = req;
 
   // dynamic query based on the request
   let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
@@ -267,6 +267,40 @@ export async function GetCafesByIDAndQuery(
 
   if (error) {
     return new Error('Error querying cafes');
+  }
+
+  if (sortBy === 'distance') {
+    // sort by distance
+    const userLocation = geolocation;
+    if (userLocation) {
+      const sortedCafes = data?.sort((a, b) => {
+        const cafeALocation = { lat: a.latitude, lng: a.longitude };
+        const cafeBLocation = { lat: b.latitude, lng: b.longitude };
+        const distanceA = calculateDistance(userLocation, cafeALocation);
+        const distanceB = calculateDistance(userLocation, cafeBLocation);
+        return distanceA - distanceB;
+      });
+
+      return sortedCafes as Cafe[];
+    }
+  } else {
+    // sort by relevance
+    const sortedCafes = data?.sort((a, b) => {
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+      const lowerCaseQuery = query?.toLowerCase();
+      const titleAMatch = titleA.includes(lowerCaseQuery || '');
+      const titleBMatch = titleB.includes(lowerCaseQuery || '');
+      if (titleAMatch && !titleBMatch) {
+        return -1;
+      }
+      if (!titleAMatch && titleBMatch) {
+        return 1;
+      }
+      return 0;
+    });
+
+    return sortedCafes as Cafe[];
   }
 
   return data as Cafe[];

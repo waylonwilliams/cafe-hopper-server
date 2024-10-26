@@ -56,6 +56,7 @@ export type CafeSearchRequest = {
   };
   openNow?: boolean | undefined;
   tags?: string[];
+  sortBy?: string;
 };
 
 /**

@@ -9,8 +9,8 @@ router.get('/maps/:search', searchMaps);
 
 // POST routes
 router.post('/search/', searchCafesV3);
-// To rewrite this route I want to first query Places API, fetch the place Ids,
-// And then query Supabase to see if those place Ids exist in our database.
-// If not, we will insert them into our database.
+
+// I have searchCafesV2 and V1 in controllers/CafeController.ts, you can use them if you'd like
+// But searchCafesV3 is the latest version and works probably the best in regards to performance and accuracy
 
 export default router;
