@@ -44,9 +44,12 @@ export const TextSearchV2 = (cafeSearchReq: CafeSearchRequest): Promise<TextSear
     throw new Error('API Key not set');
   }
 
+  // const location = // lat, lng
+  const location = `${cafeSearchReq.geolocation?.lat},${cafeSearchReq.geolocation?.lng}`;
+
   return MapsClient.textSearch({
     params: {
-      location: cafeSearchReq.location || '36.96271, -122.00222', // santa cruz geolocation but we can change this later
+      location: location,
       radius: cafeSearchReq.radius || 500,
       query: cafeSearchReq.query || 'cafe', // default to cafe if no query set explicitly
       opennow: cafeSearchReq.openNow || undefined,
