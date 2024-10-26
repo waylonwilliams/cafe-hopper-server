@@ -49,6 +49,7 @@ export const TextSearchV2 = (cafeSearchReq: CafeSearchRequest): Promise<TextSear
       location: cafeSearchReq.location || '36.96271, -122.00222', // santa cruz geolocation but we can change this later
       radius: cafeSearchReq.radius || 500,
       query: cafeSearchReq.query || 'cafe', // default to cafe if no query set explicitly
+      opennow: cafeSearchReq.openNow || undefined,
       key: API_KEY,
       type: PlaceType1.cafe,
     },
