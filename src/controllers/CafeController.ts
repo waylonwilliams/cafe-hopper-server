@@ -174,6 +174,14 @@ export const searchCafesV2 = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+/**
+ * Search cafes V3. This is the latest version of the search cafes endpoint.
+ * @description
+ * This version leverages Places API **first** for their versatile searching capabilities.
+ * We will use the places_id to query our Supabase database for cafes.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ */
 export const searchCafesV3 = async (req: Request, res: Response): Promise<void> => {
   try {
     // Build our own Request object from the post request
