@@ -219,3 +219,46 @@ export async function DynamicCafeQuery(req: CafeSearchRequest): Promise<Cafe[] |
 
   return sortedCafes as Cafe[];
 }
+
+export async function GetCafesByIDAndQuery(
+  ids: string[],
+  req: CafeSearchRequest,
+): Promise<Cafe[] | Error> {
+  const supabase = serviceClient();
+
+  const { query, geolocation, radius, tags, location } = req;
+
+  // dynamic query based on the request
+  let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
+
+  if (query) {
+    cafesQuery = cafesQuery.ilike('title', `%${query}%`);
+  }
+
+  if (geolocation && radius) {
+    const { lat, lng } = geolocation;
+    const { minLat, maxLat, minLng, maxLng } = getBoundingBox(lat, lng, radius);
+
+    cafesQuery = cafesQuery
+      .gte('latitude', minLat)
+      .lte('latitude', maxLat)
+      .gte('longitude', minLng)
+      .lte('longitude', maxLng);
+  }
+
+  if (location) {
+    cafesQuery = cafesQuery.ilike('address', `%${location}%`);
+  }
+
+  if (tags && tags.length > 0) {
+    cafesQuery = cafesQuery.contains('tags', tags);
+  }
+
+  const { data, error } = await cafesQuery;
+
+  if (error) {
+    return new Error('Error querying cafes');
+  }
+
+  return data as Cafe[];
+}

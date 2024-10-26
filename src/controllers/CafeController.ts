@@ -5,6 +5,7 @@ import {
   QueryCafesByName,
   DynamicCafeQuery,
   PushNewCafesToSupabase,
+  GetCafesByIDAndQuery,
 } from '@/utils/supabase/Cafe';
 import { PlaceDataWithId, CafeSearchRequest, CafeSearchResponse, Cafe } from '@/utils/types';
 
@@ -168,6 +169,78 @@ export const searchCafesV2 = async (req: Request, res: Response): Promise<void> 
     }
 
     res.json(places.cafes);
+  } catch (error) {
+    res.status(500).json({ error: 'An unexpected error occurred', message: error });
+  }
+};
+
+export const searchCafesV3 = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Build our own Request object from the post request
+    const cafeRequest: CafeSearchRequest = {
+      query: req.body.query,
+      radius: req.body.radius,
+      location: req.body.location,
+      geolocation: req.body.geolocation,
+      openNow: req.body.openNow,
+      tags: req.body.tags,
+    };
+
+    // Run text search first, get places from Google Places API
+    // Then we can uses the places id to query our supabase
+    // get the cafes from supabase
+    // and then check if tags are provided
+    // if they are, return the cafes that match the tags
+    // if not, return all cafes found under other parameters and also add the new cafes to supabase if found
+
+    const textSearchResponse = await TextSearchV2(cafeRequest);
+    const results = textSearchResponse.data.results;
+    const places: PlaceDataWithId[] = [];
+    for (let i = 0; i < results.length; i++) {
+      const place = results[i];
+      if (!place.place_id) {
+        throw new Error('place_id is required');
+      }
+      const placeDetails = await GetPlaceDetails(place.place_id);
+      places.push({ ...placeDetails.data.result, place_id: place.place_id });
+    }
+
+    const cafesFromPlaceData = CreateNewCafesFromPlaceData(places);
+    if (cafesFromPlaceData instanceof Error) {
+      res.status(400).json({ error: cafesFromPlaceData.message });
+      throw cafesFromPlaceData;
+    }
+
+    const cafePlaceIds = cafesFromPlaceData.map((cafe) => cafe.id);
+
+    const cafesSupabase = await GetCafesByIDAndQuery(cafePlaceIds, cafeRequest);
+
+    if (cafesSupabase instanceof Error) {
+      res.status(400).json({ error: cafesSupabase.message });
+      throw cafesSupabase;
+    }
+
+    // Check if tags are provided
+    if (cafeRequest.tags && cafeRequest.tags.length > 0) {
+      // we already queried the cafes from supabase with the given tags
+      res.json(cafesSupabase);
+      return;
+    }
+
+    // If no tags are provided, we need to push the new cafes to supabase if we found any
+    const cafesToPush = cafesFromPlaceData.filter((cafe) => {
+      return !cafesSupabase.find((cafeSupabase) => cafeSupabase.id === cafe.id);
+    });
+
+    if (cafesToPush.length > 0) {
+      const err = await PushNewCafesToSupabase(cafesToPush);
+      if (err instanceof Error) {
+        res.status(400).json({ error: err.message });
+        throw err;
+      }
+    }
+
+    res.json([...cafesSupabase, ...cafesToPush]);
   } catch (error) {
     res.status(500).json({ error: 'An unexpected error occurred', message: error });
   }
