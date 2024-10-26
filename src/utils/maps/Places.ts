@@ -1,11 +1,12 @@
-import { MapsClient } from "@/utils/maps/Client";
+import { MapsClient } from '@/utils/maps/Client';
 import type {
   PlaceDetailsResponse,
   PlacePhotoResponse,
   PlacesNearbyResponse,
   TextSearchResponse,
-} from "@googlemaps/google-maps-services-js";
-import { PlaceType1 } from "@googlemaps/google-maps-services-js";
+} from '@googlemaps/google-maps-services-js';
+import { PlaceType1 } from '@googlemaps/google-maps-services-js';
+import { CafeSearchRequest } from '@/utils/types';
 
 /**
  * @author Arveen Azhand
@@ -20,20 +21,35 @@ import { PlaceType1 } from "@googlemaps/google-maps-services-js";
  * @param geolocation - The geolocation of the user (or some predefined location).
  */
 
-export const TextSearch = (
-  query: string,
-  geolocation?: string
-): Promise<TextSearchResponse> => {
-  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
-  if (API_KEY === "") {
-    throw new Error("API Key not set");
+export const TextSearch = (query: string, geolocation?: string): Promise<TextSearchResponse> => {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
+  if (API_KEY === '') {
+    throw new Error('API Key not set');
   }
 
   return MapsClient.textSearch({
     params: {
-      location: geolocation || "36.974117, -122.030792", // santa cruz geolocation but we can change this later
+      location: geolocation || '36.974117, -122.030792', // santa cruz geolocation but we can change this later
       radius: 1000,
       query: query,
+      key: API_KEY,
+      type: PlaceType1.cafe,
+    },
+  });
+};
+
+export const TextSearchV2 = (cafeSearchReq: CafeSearchRequest): Promise<TextSearchResponse> => {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
+  if (API_KEY === '') {
+    throw new Error('API Key not set');
+  }
+
+  return MapsClient.textSearch({
+    params: {
+      location: cafeSearchReq.location || '36.96271, -122.00222', // santa cruz geolocation but we can change this later
+      radius: cafeSearchReq.radius || 500,
+      query: cafeSearchReq.query || 'cafe', // default to cafe if no query set explicitly
+      opennow: cafeSearchReq.openNow || undefined,
       key: API_KEY,
       type: PlaceType1.cafe,
     },
@@ -52,13 +68,10 @@ export const TextSearch = (
  * @param location - The location of the user.
  * @param radius - The radius of the search.
  */
-export const NearbySearch = (
-  location: string,
-  radius: number
-): Promise<PlacesNearbyResponse> => {
-  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
-  if (API_KEY === "") {
-    throw new Error("API Key not set");
+export const NearbySearch = (location: string, radius: number): Promise<PlacesNearbyResponse> => {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
+  if (API_KEY === '') {
+    throw new Error('API Key not set');
   }
 
   return MapsClient.placesNearby({
@@ -86,12 +99,10 @@ export const NearbySearch = (
  *
  * @param photo_reference - The photo reference.
  */
-export const GetPlacePhoto = (
-  photo_reference: string
-): Promise<PlacePhotoResponse> => {
-  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
-  if (API_KEY === "") {
-    throw new Error("API Key not set");
+export const GetPlacePhoto = (photo_reference: string): Promise<PlacePhotoResponse> => {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
+  if (API_KEY === '') {
+    throw new Error('API Key not set');
   }
 
   return MapsClient.placePhoto({
@@ -99,9 +110,9 @@ export const GetPlacePhoto = (
       maxheight: 100,
       maxwidth: 100,
       photoreference: photo_reference,
-      key: process.env.GOOGLE_MAPS_API_KEY || "",
+      key: process.env.GOOGLE_MAPS_API_KEY || '',
     },
-    responseType: "arraybuffer",
+    responseType: 'arraybuffer',
   });
 };
 
@@ -116,27 +127,25 @@ export const GetPlacePhoto = (
  *
  * @param place_id - The place ID.
  */
-export const GetPlaceDetails = (
-  place_id: string | undefined
-): Promise<PlaceDetailsResponse> => {
+export const GetPlaceDetails = (place_id: string | undefined): Promise<PlaceDetailsResponse> => {
   if (!place_id) {
-    throw new Error("Place ID not set");
+    throw new Error('Place ID not set');
   }
-  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
-  if (API_KEY === "") {
-    throw new Error("API Key not set");
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
+  if (API_KEY === '') {
+    throw new Error('API Key not set');
   }
 
   return MapsClient.placeDetails({
     params: {
       place_id: place_id,
-      key: process.env.GOOGLE_MAPS_API_KEY || "",
+      key: process.env.GOOGLE_MAPS_API_KEY || '',
       fields: [
-        "opening_hours/weekday_text",
-        "name",
-        "formatted_address",
-        "geometry",
-        "icon_mask_base_uri",
+        'opening_hours/weekday_text',
+        'name',
+        'formatted_address',
+        'geometry',
+        'icon_mask_base_uri',
       ],
     },
   });
