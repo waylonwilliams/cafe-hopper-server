@@ -20,6 +20,8 @@ type Cafe = {
   latitude: number;
   longitude: number;
   hours: string;
+  tags: string[];
+  created_at: string;
 };
 ```
 
@@ -78,5 +80,5 @@ const cafeRequest: CafeSearchRequest = {
 ```
 
 - **Response**
-  - 200 - Returns an array of Cafe objects that match the search query.
+  - 200 - Returns an array of Cafe objects that match the search query. I would look at the Cafe type for more information.
   - 400 - Returns an error message if the query is invalid.

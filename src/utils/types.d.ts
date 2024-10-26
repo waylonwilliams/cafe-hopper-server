@@ -22,6 +22,7 @@ export type Cafe = {
   longitude: number;
   hours: string;
   tags?: string[];
+  created_at?: string;
 };
 
 /**
