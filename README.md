@@ -60,12 +60,12 @@ These will be the options that we can set for the user, and will be sent to the 
 - **Query Params**
   - 'query' - The search query that the user is looking for, could be name, address, etc..
   - 'radius' - The radius in meters that the user is looking for.
-  - 'location' - The location that the user is looking for.
+  - 'location' - The location that the user is looking for. Typically this would be the city or state.
   - 'geolocation' - The geolocation that the user is looking for. See CafeSearchRequest for more information.
   - 'openNow' - Whether the cafe is open now or not.
   - 'tags' - The tags that the user is looking for.
 
-Note: Query is similar to how you would search something up in Google Maps or Yelp. The reason for this is because we are actually going to be passing in the query in the TextSearch function provided by the Places API.
+Note: Query is similar to how you would search something up in Google Maps or Yelp. (it could be like 'cafes near me' or just a simple name search) The reason for this is because we are actually going to be passing in the query in the TextSearch function provided by the Places API. So in a search bar on the frontend, you would typically put whatever is in the search bar in the query field. On a search method like on a map, the query automatically becomes "cafe" (handled here already) and you would just handle the rest of the fields.
 
 Here is an example of how I plan to use the tags:
 
