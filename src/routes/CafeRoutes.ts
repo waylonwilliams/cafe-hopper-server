@@ -1,10 +1,5 @@
 import { Router } from 'express';
-import {
-  searchCafes,
-  searchMaps,
-  searchCafesV2,
-  searchCafesV3,
-} from '@/controllers/CafeController';
+import { searchCafes, searchMaps, searchCafesV3 } from '@/controllers/CafeController';
 
 const router = Router();
 
