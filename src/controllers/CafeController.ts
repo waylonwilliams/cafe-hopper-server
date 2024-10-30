@@ -186,6 +186,21 @@ export const searchCafesV2 = async (req: Request, res: Response): Promise<void> 
 export const searchCafesV3 = async (req: Request, res: Response): Promise<void> => {
   try {
     // Build our own Request object from the post request
+
+    // check if all fields are empty
+    if (
+      !req.body.query &&
+      !req.body.radius &&
+      !req.body.location &&
+      !req.body.geolocation &&
+      !req.body.openNow &&
+      !req.body.tags &&
+      !req.body.sortBy
+    ) {
+      res.status(400).json({ error: 'No search options provided' });
+      return;
+    }
+
     if (req.body.geolocation && (!req.body.geolocation.lat || !req.body.geolocation.lng)) {
       res.status(400).json({ error: 'geolocation must have lat and lng' });
       return;
