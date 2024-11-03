@@ -195,7 +195,8 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       !req.body.geolocation &&
       !req.body.openNow &&
       !req.body.tags &&
-      !req.body.sortBy
+      !req.body.sortBy &&
+      !req.body.customTime
     ) {
       res.status(400).json({ error: 'No search options provided' });
       return;
@@ -217,11 +218,12 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       openNow: req.body.openNow,
       tags: req.body.tags,
       sortBy: req.body.sortBy,
+      customTime: req.body.customTime,
     };
 
     const textSearchResponse = await TextSearchV2(cafeRequest);
     const results = textSearchResponse.data.results;
-    const places: PlaceDataWithId[] = [];
+    let places: PlaceDataWithId[] = [];
 
     for (let i = 0; i < results.length; i++) {
       const place = results[i];
@@ -230,6 +232,19 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       }
       const placeDetails = await GetPlaceDetails(place.place_id);
       places.push({ ...placeDetails.data.result, place_id: place.place_id });
+    }
+
+    if (cafeRequest.customTime) {
+      const { customTime } = cafeRequest;
+      const day = customTime.day || new Date().getDay();
+      const time = customTime.time || '0000';
+      const filteredPlaces = filterPlacesByTime(places, time, day);
+      places = filteredPlaces;
+    }
+
+    if (places.length === 0) {
+      res.json([]);
+      return;
     }
 
     const cafesFromPlaceData = CreateNewCafesFromPlaceData(places);
@@ -306,3 +321,46 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: 'An unexpected error occurred', message: error });
   }
 };
+
+function timeToMinutes(time: string | undefined): number {
+  if (!time) {
+    return 0;
+  }
+  const hours = parseInt(time.substring(0, 2), 10);
+  const minutes = parseInt(time.substring(2), 10);
+  return hours * 60 + minutes;
+}
+
+function filterPlacesByTime(
+  places: PlaceDataWithId[],
+  time: string,
+  day: number,
+): PlaceDataWithId[] {
+  const timeInMinutes = timeToMinutes(time);
+
+  return places.filter((place) => {
+    const openingHours = place.opening_hours?.periods || [];
+
+    return openingHours.some((period) => {
+      if (period.open?.day === day) {
+        const openTime = timeToMinutes(period.open.time);
+        const closeTime = timeToMinutes(period.close?.time);
+
+        if (openTime === 0 || closeTime === 0) {
+          return false;
+        }
+
+        if (openTime <= timeInMinutes && timeInMinutes <= closeTime) {
+          return true;
+        }
+
+        if (openTime > closeTime && (openTime <= timeInMinutes || timeInMinutes <= closeTime)) {
+          return true;
+        }
+
+        return false;
+      }
+      return false;
+    });
+  });
+}

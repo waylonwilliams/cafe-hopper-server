@@ -55,6 +55,10 @@ export type CafeSearchRequest = {
     lng: number;
   };
   openNow?: boolean | undefined;
+  customTime?: {
+    day?: number;
+    time?: string;
+  };
   tags?: string[];
   sortBy?: string;
 };

@@ -145,6 +145,7 @@ export const GetPlaceDetails = (place_id: string | undefined): Promise<PlaceDeta
       key: process.env.GOOGLE_MAPS_API_KEY || '',
       fields: [
         'opening_hours/weekday_text',
+        'opening_hours/periods',
         'name',
         'formatted_address',
         'geometry',
