@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TextSearch, GetPlaceDetails, TextSearchV2 } from '@/utils/maps/Places';
+import { TextSearch, GetPlaceDetails, TextSearchV2, FilterPlacesByTime } from '@/utils/maps/Places';
 import {
   CreateNewCafesFromPlaceData,
   QueryCafesByName,
@@ -195,20 +195,26 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       !req.body.geolocation &&
       !req.body.openNow &&
       !req.body.tags &&
-      !req.body.sortBy
+      !req.body.sortBy &&
+      !req.body.customTime
     ) {
       res.status(400).json({ error: 'No search options provided' });
       return;
     }
 
+    // check if valid geolocation is provided
     if (req.body.geolocation && (!req.body.geolocation.lat || !req.body.geolocation.lng)) {
       res.status(400).json({ error: 'geolocation must have lat and lng' });
       return;
     }
+
+    // check if valid sortBy is provided
     if (req.body.sortBy && !['distance', 'relevance'].includes(req.body.sortBy)) {
       res.status(400).json({ error: 'sortBy must be either distance or relevance' });
       return;
     }
+
+    // build the request object
     const cafeRequest: CafeSearchRequest = {
       query: req.body.query,
       radius: req.body.radius,
@@ -217,12 +223,14 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       openNow: req.body.openNow,
       tags: req.body.tags,
       sortBy: req.body.sortBy,
+      customTime: req.body.customTime,
     };
 
     const textSearchResponse = await TextSearchV2(cafeRequest);
     const results = textSearchResponse.data.results;
-    const places: PlaceDataWithId[] = [];
+    let places: PlaceDataWithId[] = [];
 
+    // get detailed information about each place
     for (let i = 0; i < results.length; i++) {
       const place = results[i];
       if (!place.place_id) {
@@ -232,6 +240,22 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       places.push({ ...placeDetails.data.result, place_id: place.place_id });
     }
 
+    // if a custom time is provided, filter the places by time
+    if (cafeRequest.customTime) {
+      const { customTime } = cafeRequest;
+      const day = customTime.day || new Date().getDay();
+      const time = customTime.time || '0000';
+      const filteredPlaces = FilterPlacesByTime(places, time, day);
+      places = filteredPlaces;
+    }
+
+    // if no places are found, return an empty array
+    if (places.length === 0) {
+      res.status(200).json([]);
+      return;
+    }
+
+    // create new cafes from the place data
     const cafesFromPlaceData = CreateNewCafesFromPlaceData(places);
     if (cafesFromPlaceData instanceof Error) {
       res.status(400).json({ error: cafesFromPlaceData.message });
