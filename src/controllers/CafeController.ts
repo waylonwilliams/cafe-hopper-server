@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TextSearch, GetPlaceDetails, TextSearchV2 } from '@/utils/maps/Places';
+import { TextSearch, GetPlaceDetails, TextSearchV2, FilterPlacesByTime } from '@/utils/maps/Places';
 import {
   CreateNewCafesFromPlaceData,
   QueryCafesByName,
@@ -202,14 +202,19 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // check if valid geolocation is provided
     if (req.body.geolocation && (!req.body.geolocation.lat || !req.body.geolocation.lng)) {
       res.status(400).json({ error: 'geolocation must have lat and lng' });
       return;
     }
+
+    // check if valid sortBy is provided
     if (req.body.sortBy && !['distance', 'relevance'].includes(req.body.sortBy)) {
       res.status(400).json({ error: 'sortBy must be either distance or relevance' });
       return;
     }
+
+    // build the request object
     const cafeRequest: CafeSearchRequest = {
       query: req.body.query,
       radius: req.body.radius,
@@ -225,6 +230,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
     const results = textSearchResponse.data.results;
     let places: PlaceDataWithId[] = [];
 
+    // get detailed information about each place
     for (let i = 0; i < results.length; i++) {
       const place = results[i];
       if (!place.place_id) {
@@ -234,19 +240,22 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       places.push({ ...placeDetails.data.result, place_id: place.place_id });
     }
 
+    // if a custom time is provided, filter the places by time
     if (cafeRequest.customTime) {
       const { customTime } = cafeRequest;
       const day = customTime.day || new Date().getDay();
       const time = customTime.time || '0000';
-      const filteredPlaces = filterPlacesByTime(places, time, day);
+      const filteredPlaces = FilterPlacesByTime(places, time, day);
       places = filteredPlaces;
     }
 
+    // if no places are found, return an empty array
     if (places.length === 0) {
-      res.json([]);
+      res.status(200).json([]);
       return;
     }
 
+    // create new cafes from the place data
     const cafesFromPlaceData = CreateNewCafesFromPlaceData(places);
     if (cafesFromPlaceData instanceof Error) {
       res.status(400).json({ error: cafesFromPlaceData.message });
@@ -321,46 +330,3 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: 'An unexpected error occurred', message: error });
   }
 };
-
-function timeToMinutes(time: string | undefined): number {
-  if (!time) {
-    return 0;
-  }
-  const hours = parseInt(time.substring(0, 2), 10);
-  const minutes = parseInt(time.substring(2), 10);
-  return hours * 60 + minutes;
-}
-
-function filterPlacesByTime(
-  places: PlaceDataWithId[],
-  time: string,
-  day: number,
-): PlaceDataWithId[] {
-  const timeInMinutes = timeToMinutes(time);
-
-  return places.filter((place) => {
-    const openingHours = place.opening_hours?.periods || [];
-
-    return openingHours.some((period) => {
-      if (period.open?.day === day) {
-        const openTime = timeToMinutes(period.open.time);
-        const closeTime = timeToMinutes(period.close?.time);
-
-        if (openTime === 0 || closeTime === 0) {
-          return false;
-        }
-
-        if (openTime <= timeInMinutes && timeInMinutes <= closeTime) {
-          return true;
-        }
-
-        if (openTime > closeTime && (openTime <= timeInMinutes || timeInMinutes <= closeTime)) {
-          return true;
-        }
-
-        return false;
-      }
-      return false;
-    });
-  });
-}

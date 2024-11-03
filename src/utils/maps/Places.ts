@@ -6,7 +6,7 @@ import type {
   TextSearchResponse,
 } from '@googlemaps/google-maps-services-js';
 import { PlaceType1 } from '@googlemaps/google-maps-services-js';
-import { CafeSearchRequest } from '@/utils/types';
+import { CafeSearchRequest, PlaceDataWithId } from '@/utils/types';
 
 /**
  * @author Arveen Azhand
@@ -154,3 +154,56 @@ export const GetPlaceDetails = (place_id: string | undefined): Promise<PlaceDeta
     },
   });
 };
+
+// helper function to convert time to minutes
+function timeToMinutes(time: string | undefined): number {
+  if (!time) {
+    return 0;
+  }
+  const hours = parseInt(time.substring(0, 2), 10);
+  const minutes = parseInt(time.substring(2), 10);
+  return hours * 60 + minutes;
+}
+
+/**
+ * @name filterPlacesByTime
+ * @description
+ * Filters places by time.
+ *
+ * @param places - The places to filter.
+ * @param time - The time to filter by.
+ * @param day - The day to filter by.
+ */
+export function FilterPlacesByTime(
+  places: PlaceDataWithId[],
+  time: string,
+  day: number,
+): PlaceDataWithId[] {
+  const timeInMinutes = timeToMinutes(time);
+
+  return places.filter((place) => {
+    const openingHours = place.opening_hours?.periods || [];
+
+    return openingHours.some((period) => {
+      if (period.open?.day === day) {
+        const openTime = timeToMinutes(period.open.time);
+        const closeTime = timeToMinutes(period.close?.time);
+
+        if (openTime === 0 || closeTime === 0) {
+          return false;
+        }
+
+        if (openTime <= timeInMinutes && timeInMinutes <= closeTime) {
+          return true;
+        }
+
+        if (openTime > closeTime && (openTime <= timeInMinutes || timeInMinutes <= closeTime)) {
+          return true;
+        }
+
+        return false;
+      }
+      return false;
+    });
+  });
+}
