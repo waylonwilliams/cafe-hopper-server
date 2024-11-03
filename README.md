@@ -49,9 +49,9 @@ type CafeSearchRequest = {
   tags?: string[];
   sortBy?: 'relevance' | 'distance';
   customTime?: {
-    day: number;  // 0-6 where 0 is Sunday and 6 is Saturday
+    day: number; // 0-6 where 0 is Sunday and 6 is Saturday
     time: string; // 'HHMM' in 24 hour format, ex: 2000 for 8:00 PM
-  }
+  };
 };
 ```
 
