@@ -48,6 +48,10 @@ type CafeSearchRequest = {
   openNow?: boolean | undefined;
   tags?: string[];
   sortBy?: 'relevance' | 'distance';
+  customTime?: {
+    day: number;  // 0-6 where 0 is Sunday and 6 is Saturday
+    time: string; // 'HHMM' in 24 hour format, ex: 2000 for 8:00 PM
+  }
 };
 ```
 
@@ -64,7 +68,8 @@ These will be the options that we can set for the user, and will be sent to the 
   - 'geolocation' - The geolocation that the user is looking for. See CafeSearchRequest for more information.
   - 'openNow' - Whether the cafe is open now or not.
   - 'tags' - The tags that the user is looking for.
-    - 'sortBy' - The way that the user wants to sort the cafes. See CafeSearchRequest for more information.
+  - 'sortBy' - The way that the user wants to sort the cafes. See CafeSearchRequest for more information.
+  - 'customTime' - The custom time that the user is looking for. See CafeSearchRequest for more information.
 
 Note: Query is similar to how you would search something up in Google Maps or Yelp. (it could be like 'cafes near me' or just a simple name search) The reason for this is because we are actually going to be passing in the query in the TextSearch function provided by the Places API. So in a search bar on the frontend, you would typically put whatever is in the search bar in the query field. On a search method like on a map, the query automatically becomes "cafe" (handled here already) and you would just handle the rest of the fields.
 
