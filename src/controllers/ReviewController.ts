@@ -1,5 +1,27 @@
 import { Request, Response } from 'express';
 import { serviceClient } from '@/utils/supabase/Client';
+import OpenAI from 'openai';
+
+const summarizeReviews = async (reviews: string[]): Promise<string | null> => {
+  try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    // can refine this prompt depending on how we will present it
+    const prompt = `Summarize the following reviews of a cafe:\n\n${reviews.join('\n\n')}`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error('Error in summarizeReviews:', error);
+    return null;
+  }
+};
 
 /**
  * Ping the server to cache cafe info every 5th request, or every requrest when there aren't many requests.
@@ -59,8 +81,8 @@ export const reviewPing = async (req: Request, res: Response): Promise<void> => 
         .slice(0, 8);
 
       let summary: string | null = null;
-      if (newNumReviews > 10) {
-        // do ai summary
+      if (newNumReviews >= 10) {
+        summary = await summarizeReviews(reviewData.map((review) => review.description));
       }
 
       console.log(numReviews, avgRating, topTags, summary, image);
