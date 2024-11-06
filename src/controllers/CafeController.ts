@@ -147,7 +147,6 @@ export const searchCafesV2 = async (req: Request, res: Response): Promise<void> 
     const cafeRequest: CafeSearchRequest = {
       query: req.body.query,
       radius: req.body.radius,
-      location: req.body.location,
       geolocation: req.body.geolocation,
       openNow: req.body.openNow,
       tags: req.body.tags,
@@ -218,7 +217,6 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
     const cafeRequest: CafeSearchRequest = {
       query: req.body.query,
       radius: req.body.radius,
-      location: req.body.location,
       geolocation: req.body.geolocation,
       openNow: req.body.openNow,
       tags: req.body.tags,

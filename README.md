@@ -20,8 +20,11 @@ type Cafe = {
   latitude: number;
   longitude: number;
   hours: string;
-  tags: string[];
-  created_at: string;
+  tags?: string[];
+  created_at?: string;
+  image?: string;
+  num_reviews?: number;
+  rating?: number;
 };
 ```
 
@@ -40,14 +43,13 @@ Cafe is just a type that represents the Cafe schema in Supabase. As we add/remov
 type CafeSearchRequest = {
   query?: string;
   radius?: number | 1000;
-  location?: string;
   geolocation?: {
     lat: number;
     lng: number;
   };
   openNow?: boolean | undefined;
   tags?: string[];
-  sortBy?: 'relevance' | 'distance';
+  sortBy?: 'relevance' | 'distance'; // could also sort by rating later
   customTime?: {
     day: number; // 0-6 where 0 is Sunday and 6 is Saturday
     time: string; // 'HHMM' in 24 hour format, ex: 2000 for 8:00 PM
@@ -64,7 +66,6 @@ These will be the options that we can set for the user, and will be sent to the 
 - **Query Params**
   - 'query' - The search query that the user is looking for, could be name, address, etc..
   - 'radius' - The radius in meters that the user is looking for.
-  - 'location' - The location that the user is looking for. Typically this would be the city or state.
   - 'geolocation' - The geolocation that the user is looking for. See CafeSearchRequest for more information.
   - 'openNow' - Whether the cafe is open now or not.
   - 'tags' - The tags that the user is looking for.
@@ -73,17 +74,17 @@ These will be the options that we can set for the user, and will be sent to the 
 
 Note: Query is similar to how you would search something up in Google Maps or Yelp. (it could be like 'cafes near me' or just a simple name search) The reason for this is because we are actually going to be passing in the query in the TextSearch function provided by the Places API. So in a search bar on the frontend, you would typically put whatever is in the search bar in the query field. On a search method like on a map, the query automatically becomes "cafe" (handled here already) and you would just handle the rest of the fields.
 
-Here is an example of how I plan to use the tags:
+Here is an example of how I plan to use the tags (it's pretty simple):
 
 ```typescript
 const cafeRequest: CafeSearchRequest = {
   query: req.body.query,
   radius: req.body.radius,
-  location: req.body.location,
   geolocation: req.body.geolocation,
   openNow: req.body.openNow,
   tags: req.body.tags,
   sortBy: req.body.sortBy,
+  customTime: req.body.customTime,
 };
 ```
 

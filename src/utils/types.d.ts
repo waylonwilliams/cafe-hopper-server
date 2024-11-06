@@ -23,6 +23,9 @@ export type Cafe = {
   hours: string;
   tags?: string[];
   created_at?: string;
+  image?: string;
+  num_reviews?: number;
+  rating?: number;
 };
 
 /**
@@ -49,7 +52,6 @@ export type PlaceDataWithId = {
 export type CafeSearchRequest = {
   query?: string;
   radius?: number | 1000;
-  location?: string;
   geolocation?: {
     lat: number;
     lng: number;
