@@ -147,7 +147,7 @@ export function calculateDistance(
 
 export async function DynamicCafeQuery(req: CafeSearchRequest): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
-  const { query, geolocation, radius, openNow, tags, location } = req;
+  const { query, geolocation, radius, openNow, tags } = req;
 
   // dynamic query based on the request
   let cafesQuery = supabase.from('cafes').select('*');
@@ -235,7 +235,7 @@ export async function GetCafesByIDAndQuery(
 ): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
 
-  const { query, geolocation, radius, tags, location, sortBy } = req;
+  const { query, geolocation, radius, tags, sortBy } = req;
 
   // dynamic query based on the request
   let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
