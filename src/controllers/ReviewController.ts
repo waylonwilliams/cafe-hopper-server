@@ -37,6 +37,7 @@ export const reviewPing = async (req: Request, res: Response): Promise<void> => 
 
       // loop through every tag of every review and count them
       const topTagsDict: { [key: string]: number } = {};
+      let image: string | null = null;
       for (const review of reviewData) {
         for (const tag of review.tags) {
           if (topTagsDict[tag]) {
@@ -44,6 +45,11 @@ export const reviewPing = async (req: Request, res: Response): Promise<void> => 
           } else {
             topTagsDict[tag] = 1;
           }
+        }
+
+        // for now just grab an image from the first review with one
+        if (image === null && review.images.length > 0) {
+          image = review.images[0];
         }
       }
 
@@ -57,18 +63,19 @@ export const reviewPing = async (req: Request, res: Response): Promise<void> => 
         // do ai summary
       }
 
-      console.log(numReviews, avgRating, topTags, summary);
+      console.log(numReviews, avgRating, topTags, summary, image);
 
-      const { data: cafeData, error: cafeError } = await supabase
+      const { error } = await supabase
         .from('cafes')
         .update({
           num_reviews: numReviews,
           rating: avgRating,
           tags: topTags,
+          image,
           summary,
         })
         .eq('id', cafeId);
-      if (cafeError) throw cafeError;
+      if (error) throw error;
     }
 
     res.status(200).send('Thanks!');
