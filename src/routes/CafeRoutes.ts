@@ -12,7 +12,7 @@ router.get('/maps/:search', searchMaps);
 router.post('/search/', searchCafesV3);
 
 // PUT routes
-router.put('/ping', reviewPing);
+router.put('/ping/:cafeId', reviewPing);
 
 // I have searchCafesV2 and V1 in controllers/CafeController.ts, you can use them if you'd like
 // But searchCafesV3 is the latest version and works probably the best in regards to performance and accuracy
