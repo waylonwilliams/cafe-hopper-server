@@ -30,75 +30,92 @@ const summarizeReviews = async (reviews: string[]): Promise<string | null> => {
  */
 export const reviewPing = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cafeId = req.params.cafeId;
-    if (!cafeId) {
-      throw "No cafe id provided, do so like 'http://localhost:3000/ping/<cafeId>'";
+    // const cafeId = req.params.cafeId;
+    const { cafeId, rating } = req.body;
+    console.log(cafeId, rating);
+    if (!cafeId || !rating) {
+      throw `No cafe id or rating provided, include them in the body of your request.
+      
+      Example: fetch(process.env.EXPO_PUBLIC_SERVER_URL + 'cafes/ping', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            cafeId: data.cafe_id,
+            rating: rating,
+          }),
+        })`;
     }
 
     const supabase = serviceClient();
 
-    // you can see this supabase function defined there
-    // essentially increments the number of reviews for a cafe
+    // you can see this supabase function defined on supabase
+    // increments num reviews and recalculates cafe info
     const { data: newNumReviews, error: cafeError } = await supabase.rpc('inc_num_reviews', {
       cafe_id: cafeId,
+      review_rating: rating,
     });
     if (cafeError) throw cafeError;
+    console.log('Did it');
 
-    // only update this stuff sometimes
-    if (newNumReviews < 10 || newNumReviews % 5 === 0) {
-      const { data: reviewData, error: reviewError } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('cafe_id', cafeId);
-      if (reviewError) throw reviewError;
+    //   // only update this stuff sometimes
+    //   // if (newNumReviews < 10 || newNumReviews % 5 === 0) {
+    //   if (true) {
+    //     const { data: reviewData, error: reviewError } = await supabase
+    //       .from('reviews')
+    //       .select('*')
+    //       .eq('cafe_id', cafeId);
+    //     if (reviewError) throw reviewError;
 
-      // num reviews, avg rating, top tags, summary, top image(waiting for review likes)
+    //     // num reviews, avg rating, top tags, summary, top image(waiting for review likes)
 
-      const numReviews = reviewData.length;
-      const avgRating = reviewData.reduce((acc, review) => acc + review.rating, 0) / numReviews;
+    //     const numReviews = reviewData.length;
+    //     const avgRating = reviewData.reduce((acc, review) => acc + review.rating, 0) / numReviews;
 
-      // loop through every tag of every review and count them
-      const topTagsDict: { [key: string]: number } = {};
-      let image: string | null = null;
-      for (const review of reviewData) {
-        for (const tag of review.tags) {
-          if (topTagsDict[tag]) {
-            topTagsDict[tag]++;
-          } else {
-            topTagsDict[tag] = 1;
-          }
-        }
+    //     // loop through every tag of every review and count them
+    //     const topTagsDict: { [key: string]: number } = {};
+    //     let image: string | null = null;
+    //     for (const review of reviewData) {
+    //       for (const tag of review.tags) {
+    //         if (topTagsDict[tag]) {
+    //           topTagsDict[tag]++;
+    //         } else {
+    //           topTagsDict[tag] = 1;
+    //         }
+    //       }
 
-        // for now just grab an image from the first review with one
-        if (image === null && review.images.length > 0) {
-          image = review.images[0];
-        }
-      }
+    //       // for now just grab an image from the first review with one
+    //       // want to get the most liked review's image
+    //       if (image === null && review.images.length > 0) {
+    //         image = review.images[0];
+    //       }
+    //     }
 
-      // extract top 7 tags by quantity
-      const topTags = Object.keys(topTagsDict)
-        .sort((a, b) => topTagsDict[b] - topTagsDict[a])
-        .slice(0, 8);
+    //     // extract top 7 tags by quantity
+    //     const topTags = Object.keys(topTagsDict)
+    //       .sort((a, b) => topTagsDict[b] - topTagsDict[a])
+    //       .slice(0, 8);
 
-      let summary: string | null = null;
-      if (newNumReviews >= 10) {
-        summary = await summarizeReviews(reviewData.map((review) => review.description));
-      }
+    //     let summary: string | null = null;
+    //     if (newNumReviews >= 4) {
+    //       summary = await summarizeReviews(reviewData.map((review) => review.description));
+    //     }
 
-      console.log(numReviews, avgRating, topTags, summary, image);
+    //     console.log(numReviews, avgRating, topTags, summary, image);
 
-      const { error } = await supabase
-        .from('cafes')
-        .update({
-          num_reviews: numReviews,
-          rating: avgRating,
-          tags: topTags,
-          image,
-          summary,
-        })
-        .eq('id', cafeId);
-      if (error) throw error;
-    }
+    //     const { error } = await supabase
+    //       .from('cafes')
+    //       .update({
+    //         num_reviews: numReviews,
+    //         rating: avgRating,
+    //         tags: topTags,
+    //         image,
+    //         summary,
+    //       })
+    //       .eq('id', cafeId);
+    //     if (error) throw error;
+    // }
 
     res.status(200).send('Thanks!');
   } catch (error) {
