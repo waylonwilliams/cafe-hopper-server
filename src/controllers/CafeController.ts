@@ -193,9 +193,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       !req.body.location &&
       !req.body.geolocation &&
       !req.body.openNow &&
-      !req.body.tags &&
-      !req.body.sortBy &&
-      !req.body.customTime
+      !req.body.tags
     ) {
       res.status(400).json({ error: 'No search options provided' });
       return;
@@ -222,6 +220,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       tags: req.body.tags,
       sortBy: req.body.sortBy,
       customTime: req.body.customTime,
+      rating: req.body.rating,
     };
 
     const textSearchResponse = await TextSearchV2(cafeRequest);
