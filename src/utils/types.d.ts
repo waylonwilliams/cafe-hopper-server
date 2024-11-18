@@ -63,6 +63,7 @@ export type CafeSearchRequest = {
   };
   tags?: string[];
   sortBy?: string;
+  rating?: number;
 };
 
 /**

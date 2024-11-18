@@ -235,7 +235,7 @@ export async function GetCafesByIDAndQuery(
 ): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
 
-  const { query, geolocation, radius, tags, sortBy } = req;
+  const { query, geolocation, radius, tags, sortBy, rating } = req;
 
   // dynamic query based on the request
   let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
@@ -255,12 +255,16 @@ export async function GetCafesByIDAndQuery(
       .lte('longitude', maxLng);
   }
 
-  if (location) {
-    cafesQuery = cafesQuery.ilike('address', `%${location}%`);
-  }
+  //   if (location) {
+  //     cafesQuery = cafesQuery.ilike('address', `%${location}%`);
+  //   }
 
   if (tags && tags.length > 0) {
     cafesQuery = cafesQuery.contains('tags', tags);
+  }
+
+  if (rating) {
+    cafesQuery = cafesQuery.gte('rating', rating);
   }
 
   const { data, error } = await cafesQuery;

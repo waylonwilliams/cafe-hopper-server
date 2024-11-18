@@ -74,6 +74,98 @@ These will be the options that we can set for the user, and will be sent to the 
 
 Note: Query is similar to how you would search something up in Google Maps or Yelp. (it could be like 'cafes near me' or just a simple name search) The reason for this is because we are actually going to be passing in the query in the TextSearch function provided by the Places API. So in a search bar on the frontend, you would typically put whatever is in the search bar in the query field. On a search method like on a map, the query automatically becomes "cafe" (handled here already) and you would just handle the rest of the fields.
 
+## Examples
+
+Request body:
+
+```json
+{
+  "radius": 1000,
+  "query": "cypress coffee",
+  "sortBy": "relevance",
+  "customTime": {
+      "day": 2,
+      "time": "0700"
+  }
+}
+```
+
+Response:
+
+```json
+[
+    {
+        "id": "ChIJW_SeZ09zkFQR3M5g1R01NJ4",
+        "created_at": "2024-10-26T20:09:30.717376+00:00",
+        "title": "Cypress Coffee Company",
+        "hours": "Monday:6:00AM–4:00PM\nTuesday:6:00AM–4:00PM\nWednesday:6:00AM–4:00PM\nThursday:6:00AM–4:00PM\nFriday:6:00AM–4:00PM\nSaturday:7:00AM–4:00PM\nSunday:7:00AM–1:00PM",
+        "latitude": 47.6944167,
+        "longitude": -122.0425667,
+        "address": "22310 NE Marketplace Dr # 102, Redmond, WA 98053, USA",
+        "tags": null,
+        "image": null,
+        "summary": null,
+        "rating": 10,
+        "num_reviews": 0
+    }
+]
+```
+
+Another request:
+
+```json
+{
+  "radius": 1000,
+  "query": "verve",
+  "sortBy": "relevance",
+  "customTime": {
+      "day": 2,
+      "time": "0700"
+  },
+  "geolocation": { // geolocation of santa cruz, ca
+      "lat": 36.974117,
+      "lng": -122.030792
+  }
+}
+```
+
+Response:
+
+```json
+[
+    {
+        "id": "ChIJ2xDn9iVAjoARFidiiMHCE4g",
+        "created_at": "2024-10-25T22:01:32.939706+00:00",
+        "title": "Verve Coffee Roasters",
+        "hours": "Monday:7:00AM–6:00PM\nTuesday:7:00AM–6:00PM\nWednesday:7:00AM–6:00PM\nThursday:7:00AM–6:00PM\nFriday:7:00AM–6:00PM\nSaturday:7:00AM–6:00PM\nSunday:7:00AM–6:00PM",
+        "latitude": 36.97624820000001,
+        "longitude": -122.0267099,
+        "address": "1540 Pacific Ave, Santa Cruz, CA 95062, USA",
+        "tags": null,
+        "image": null,
+        "summary": null,
+        "rating": 10,
+        "num_reviews": 0
+    },
+    {
+        "id": "ChIJc78V6ntqjoARVaQzxb6Pr7c",
+        "title": "Verve Coffee Roasters",
+        "address": "1010 Fair Ave, Santa Cruz, CA 95060, USA",
+        "latitude": 36.95904220000001,
+        "longitude": -122.045634,
+        "hours": "Monday:7:00AM–6:00PM\nTuesday:7:00AM–6:00PM\nWednesday:7:00AM–6:00PM\nThursday:7:00AM–6:00PM\nFriday:7:00AM–6:00PM\nSaturday:7:00AM–6:00PM\nSunday:7:00AM–6:00PM"
+    },
+    {
+        "id": "ChIJO8LPsRYVjoAR3m0kVqfBEho",
+        "title": "Verve Coffee Roasters",
+        "address": "104 Bronson St #19, Santa Cruz, CA 95062, USA",
+        "latitude": 36.9686546,
+        "longitude": -122.006444,
+        "hours": "Monday:7:00AM–5:00PM\nTuesday:7:00AM–5:00PM\nWednesday:7:00AM–5:00PM\nThursday:7:00AM–5:00PM\nFriday:7:00AM–5:00PM\nSaturday:7:00AM–5:00PM\nSunday:7:00AM–5:00PM"
+    }, ...
+]
+```
+
 Here is an example of how I plan to use the tags (it's pretty simple):
 
 ```typescript
