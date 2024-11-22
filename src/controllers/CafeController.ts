@@ -1,192 +1,26 @@
 import { Request, Response } from 'express';
-import { TextSearch, GetPlaceDetails, TextSearchV2, FilterPlacesByTime } from '@/utils/maps/Places';
+import PlacesAPI from '@/utils/googlemaps/Places';
 import {
   CreateNewCafesFromPlaceData,
-  QueryCafesByName,
-  DynamicCafeQuery,
   PushNewCafesToSupabase,
   GetCafesByIDAndQuery,
   calculateDistance,
 } from '@/utils/supabase/Cafe';
-import { PlaceDataWithId, CafeSearchRequest, CafeSearchResponse, Cafe } from '@/utils/types';
+import { PlaceDataWithId, CafeSearchRequest, CafeSearchResponse } from '@/utils/types';
 
 /**
- * Search cafes using Google Places API and Supabase.
- * Queries cafes by name from Supabase and fills in missing cafes from Google Places.
- * @param {Request} req - Express request object.
- * @param {Response} res - Express response object.
- */
-export const searchCafes = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const name = req.params.name;
-
-    const cafesSupabase = await QueryCafesByName(name);
-    if (cafesSupabase instanceof Error) {
-      res.status(400).json({ error: cafesSupabase.message });
-      throw cafesSupabase;
-    }
-
-    const places = await searchAndFilterPlaces(name, cafesSupabase);
-    if (places instanceof Error) {
-      res.status(400).json({ error: places.message });
-      throw places;
-    }
-
-    // Send the final response
-    res.json(places);
-  } catch (error) {
-    // Catch any unexpected errors and send a 500 response
-    res.status(500).json({ error: 'An unexpected error occurred', message: error });
-  }
-};
-
-export const searchMaps = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const location = req.params.search;
-    const places = await searchAndFilterPlaces(location);
-    if (places instanceof Error) {
-      res.status(400).json({ error: places.message });
-      throw places;
-    }
-    res.json(places);
-  } catch (error) {
-    res.status(500).json({ error: 'An unexpected error occurred', message: error });
-  }
-};
-
-/**
- * Search and filter places.
- * @param {string} query - The search query.
- * @param {PlaceDataWithId[]} cafesSupabase - The cafes from Supabase.
- * @returns The cafes from Supabase and Google Places, or an error if there is one.
- */
-const searchAndFilterPlaces = async (query: string, cafesSupabase: Cafe[] = []) => {
-  const textSearchResponse = await TextSearch(query);
-  const results = textSearchResponse.data.results;
-
-  const places: PlaceDataWithId[] = [];
-  for (let i = 0; i < results.length; i++) {
-    const place = results[i];
-    if (!place.place_id) {
-      return new Error('place_id is required');
-    }
-    const placeDetails = await GetPlaceDetails(place.place_id);
-    places.push({ ...placeDetails.data.result, place_id: place.place_id });
-  }
-
-  const cafesPlacesAPI = CreateNewCafesFromPlaceData(places);
-  if (cafesPlacesAPI instanceof Error) {
-    return cafesPlacesAPI;
-  }
-
-  const cafesToPush = cafesPlacesAPI.filter((cafe) => {
-    return !cafesSupabase.find((cafeSupabase) => cafeSupabase.id === cafe.id);
-  });
-
-  if (cafesToPush.length > 0) {
-    const err = await PushNewCafesToSupabase(cafesToPush);
-    if (err instanceof Error) {
-      return err;
-    }
-  }
-
-  return [...cafesSupabase, ...cafesToPush];
-};
-
-/**
- * V2 of search and filter places.
- * @param cafesSupabase
- * @param cafeRequest
- * @returns
- */
-const searchAndFilterPlacesV2 = async (
-  cafesSupabase: Cafe[],
-  cafeRequest: CafeSearchRequest,
-): Promise<CafeSearchResponse> => {
-  const textSearchResponse = await TextSearchV2(cafeRequest);
-  const results = textSearchResponse.data.results;
-
-  const places: PlaceDataWithId[] = [];
-  for (let i = 0; i < results.length; i++) {
-    const place = results[i];
-    if (!place.place_id) {
-      return { cafes: [], error: 'place_id is required' };
-    }
-    const placeDetails = await GetPlaceDetails(place.place_id);
-    places.push({ ...placeDetails.data.result, place_id: place.place_id });
-  }
-
-  const cafesPlacesAPI = CreateNewCafesFromPlaceData(places);
-  if (cafesPlacesAPI instanceof Error) {
-    return { cafes: [], error: cafesPlacesAPI.message };
-  }
-
-  const cafesToPush = cafesPlacesAPI.filter((cafe) => {
-    return !cafesSupabase.find((cafeSupabase) => cafeSupabase.id === cafe.id);
-  });
-  let newCafes: Cafe[] = [];
-  if (cafesToPush.length > 0) {
-    const res = await PushNewCafesToSupabase(cafesToPush);
-    if (res instanceof Error) {
-      return { cafes: [], error: res.message };
-    }
-    newCafes = res;
-  }
-
-  return { cafes: [...cafesSupabase, ...newCafes], error: '' };
-};
-
-/**
- * Search cafes V2.
- * @param {Request} req - Express request object.
- * @param {Response} res - Express response object.
- */
-export const searchCafesV2 = async (req: Request, res: Response): Promise<void> => {
-  try {
-    // Build our own Request object from the post request
-    const cafeRequest: CafeSearchRequest = {
-      query: req.body.query,
-      radius: req.body.radius,
-      geolocation: req.body.geolocation,
-      openNow: req.body.openNow,
-      tags: req.body.tags,
-    };
-
-    // We should do a textsearch under these parameters
-
-    const cafesSupabase = await DynamicCafeQuery(cafeRequest);
-
-    if (cafesSupabase instanceof Error) {
-      res.status(400).json({ error: cafesSupabase.message });
-      throw cafesSupabase;
-    }
-
-    const places = await searchAndFilterPlacesV2(cafesSupabase, cafeRequest);
-
-    if (places.error) {
-      res.status(400).json({ error: places.error });
-      throw places.error;
-    }
-
-    res.json(places.cafes);
-  } catch (error) {
-    res.status(500).json({ error: 'An unexpected error occurred', message: error });
-  }
-};
-
-/**
- * Search cafes V3. This is the latest version of the search cafes endpoint.
+ * searchForCafes. This is the main logic behind the cafe search functionality.
  * @description
- * This version leverages Places API **first** for their versatile searching capabilities.
+ * This version leverages Google Maps Places API **first** for their versatile searching capabilities.
  * We will use the places_id to query our Supabase database for cafes.
  * @param {Request} req - Express request object.
  * @param {Response} res - Express response object.
  */
-export const searchCafesV3 = async (req: Request, res: Response): Promise<void> => {
+export const searchForCafes = async (req: Request, res: Response): Promise<void> => {
   try {
     // Build our own Request object from the post request
-
-    // check if all fields are empty
+    // Not every field is needed, but some minimal fields are required to function.
+    // In other words, at least one of the following fields is required:
     if (
       !req.body.query &&
       !req.body.radius &&
@@ -205,7 +39,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // check if valid sortBy is provided
+    // check if a valid sortBy is provided
     if (req.body.sortBy && !['distance', 'relevance'].includes(req.body.sortBy)) {
       res.status(400).json({ error: 'sortBy must be either distance or relevance' });
       return;
@@ -223,18 +57,21 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       rating: req.body.rating,
     };
 
-    const textSearchResponse = await TextSearchV2(cafeRequest);
-    const results = textSearchResponse.data.results;
-    let places: PlaceDataWithId[] = [];
+    // Get basic place data from TextSearch.
+    const textSearchResponse = await PlacesAPI.TextSearch(cafeRequest);
+    const textSearchResults = textSearchResponse.data.results;
+    // TextSearch does not give us all the info we want.
+    let detailedPlacesWithIDs: PlaceDataWithId[] = [];
 
     // get detailed information about each place
-    for (let i = 0; i < results.length; i++) {
-      const place = results[i];
+    for (let i = 0; i < textSearchResults.length; i++) {
+      const place = textSearchResults[i];
       if (!place.place_id) {
         throw new Error('place_id is required');
       }
-      const placeDetails = await GetPlaceDetails(place.place_id);
-      places.push({ ...placeDetails.data.result, place_id: place.place_id });
+      // We get Place Details by calling the Google Places API using the IDs we get.
+      const placeDetails = await PlacesAPI.GetPlaceDetailsByID(place.place_id);
+      detailedPlacesWithIDs.push({ ...placeDetails.data.result, place_id: place.place_id });
     }
 
     // if a custom time is provided, filter the places by time
@@ -242,23 +79,25 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       const { customTime } = cafeRequest;
       const day = customTime.day || new Date().getDay();
       const time = customTime.time || '0000';
-      const filteredPlaces = FilterPlacesByTime(places, time, day);
-      places = filteredPlaces;
+      // Set up arguments for the filter function
+      const filteredPlaces = PlacesAPI.FilterPlacesByTime(detailedPlacesWithIDs, time, day);
+      detailedPlacesWithIDs = filteredPlaces;
     }
 
     // if no places are found, return an empty array
-    if (places.length === 0) {
+    if (detailedPlacesWithIDs.length === 0) {
       res.status(200).json([]);
       return;
     }
 
-    // create new cafes from the place data
-    const cafesFromPlaceData = CreateNewCafesFromPlaceData(places);
+    // create new Cafe objects from the place data
+    const cafesFromPlaceData = CreateNewCafesFromPlaceData(detailedPlacesWithIDs);
     if (cafesFromPlaceData instanceof Error) {
       res.status(400).json({ error: cafesFromPlaceData.message });
       throw cafesFromPlaceData;
     }
 
+    // get the Place IDs of the Place data to query Supabase
     const cafePlaceIds = cafesFromPlaceData.map((cafe) => cafe.id);
 
     const cafesSupabase = await GetCafesByIDAndQuery(cafePlaceIds, cafeRequest);
@@ -268,9 +107,11 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       throw cafesSupabase;
     }
 
-    // Check if tags are provided
+    // Check if tags are provided in the request body
     if (cafeRequest.tags && cafeRequest.tags.length > 0) {
       // we already queried the cafes from supabase with the given tags
+      // and since tags are only on cafes in the database, we
+      // can return the cafes right now.
       res.json(cafesSupabase);
       return;
     }
@@ -288,14 +129,17 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       }
     }
 
-    const response = [...cafesSupabase, ...cafesToPush];
+    const searchResponse: CafeSearchResponse = {
+      cafes: [...cafesSupabase, ...cafesToPush],
+      error: '',
+    };
 
     // Sort the response based on the sortBy parameter again if we found new cafes
     const { sortBy, geolocation, query } = cafeRequest;
     if (sortBy === 'distance') {
       const userLocation = geolocation;
       if (userLocation) {
-        response.sort((a, b) => {
+        searchResponse.cafes.sort((a, b) => {
           const cafeALocation = { lat: a.latitude, lng: a.longitude };
           const cafeBLocation = { lat: b.latitude, lng: b.longitude };
           const distanceA = calculateDistance(userLocation, cafeALocation);
@@ -307,7 +151,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
 
     if (sortBy === 'relevance') {
       const lowerCaseQuery = query?.toLowerCase();
-      response.sort((a, b) => {
+      searchResponse.cafes.sort((a, b) => {
         const titleA = a.title.toLowerCase();
         const titleB = b.title.toLowerCase();
         const titleAMatch = titleA.includes(lowerCaseQuery || '');
@@ -322,7 +166,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
       });
     }
 
-    res.json([...cafesSupabase, ...cafesToPush]);
+    res.json(searchResponse);
   } catch (error) {
     res.status(500).json({ error: 'An unexpected error occurred', message: error });
   }

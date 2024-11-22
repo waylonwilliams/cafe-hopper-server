@@ -1,3 +1,8 @@
+/**
+ * @name Cafe
+ * @description
+ * This file handles main logic for handling data from the Cafes table in Supabase.
+ */
 import { serviceClient } from '@/utils/supabase/Client';
 import { Cafe, PlaceDataWithId, CafeSearchRequest } from '@types';
 
@@ -143,81 +148,6 @@ export function calculateDistance(
       2;
 
   return R * 2 * Math.asin(Math.sqrt(a));
-}
-
-export async function DynamicCafeQuery(req: CafeSearchRequest): Promise<Cafe[] | Error> {
-  const supabase = serviceClient();
-  const { query, geolocation, radius, openNow, tags } = req;
-
-  // dynamic query based on the request
-  let cafesQuery = supabase.from('cafes').select('*');
-
-  if (query) {
-    cafesQuery = cafesQuery.ilike('title', `%${query}%`);
-  }
-
-  if (geolocation && radius) {
-    const { lat, lng } = geolocation;
-    const { minLat, maxLat, minLng, maxLng } = getBoundingBox(lat, lng, radius);
-
-    cafesQuery = cafesQuery
-      .gte('latitude', minLat)
-      .lte('latitude', maxLat)
-      .gte('longitude', minLng)
-      .lte('longitude', maxLng);
-  }
-
-  if (openNow) {
-    // const currentTime = new Date().getHours();
-    // have to figure this out somehow.
-  }
-
-  if (location) {
-    cafesQuery = cafesQuery.ilike('address', `%${location}%`);
-  }
-
-  if (tags && tags.length > 0) {
-    cafesQuery = cafesQuery.contains('tags', tags);
-  }
-
-  const { data, error } = await cafesQuery;
-
-  if (error) {
-    return new Error('Error querying cafes');
-  }
-
-  // we should sort the cafes by priority:
-  // 1. if the title matches the query
-  // 2. how close the location is to the user
-
-  const sortedCafes = data?.sort((a, b) => {
-    // sort title by relevance
-    const titleA = a.title.toLowerCase();
-    const titleB = b.title.toLowerCase();
-    const lowerCaseQuery = query?.toLowerCase();
-    const titleAMatch = titleA.includes(lowerCaseQuery || '');
-    const titleBMatch = titleB.includes(lowerCaseQuery || '');
-    if (titleAMatch && !titleBMatch) {
-      return -1;
-    }
-    if (!titleAMatch && titleBMatch) {
-      return 1;
-    }
-
-    // sort by distance
-    const userLocation = geolocation;
-    if (userLocation) {
-      const cafeALocation = { lat: a.latitude, lng: a.longitude };
-      const cafeBLocation = { lat: b.latitude, lng: b.longitude };
-      const distanceA = calculateDistance(userLocation, cafeALocation);
-      const distanceB = calculateDistance(userLocation, cafeBLocation);
-      return distanceA - distanceB;
-    }
-
-    return 0;
-  });
-
-  return sortedCafes as Cafe[];
 }
 
 /**

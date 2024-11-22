@@ -84,8 +84,8 @@ Request body:
   "query": "cypress coffee",
   "sortBy": "relevance",
   "customTime": {
-      "day": 2,
-      "time": "0700"
+    "day": 2,
+    "time": "0700"
   }
 }
 ```
@@ -94,20 +94,20 @@ Response:
 
 ```json
 [
-    {
-        "id": "ChIJW_SeZ09zkFQR3M5g1R01NJ4",
-        "created_at": "2024-10-26T20:09:30.717376+00:00",
-        "title": "Cypress Coffee Company",
-        "hours": "Monday:6:00AM–4:00PM\nTuesday:6:00AM–4:00PM\nWednesday:6:00AM–4:00PM\nThursday:6:00AM–4:00PM\nFriday:6:00AM–4:00PM\nSaturday:7:00AM–4:00PM\nSunday:7:00AM–1:00PM",
-        "latitude": 47.6944167,
-        "longitude": -122.0425667,
-        "address": "22310 NE Marketplace Dr # 102, Redmond, WA 98053, USA",
-        "tags": null,
-        "image": null,
-        "summary": null,
-        "rating": 10,
-        "num_reviews": 0
-    }
+  {
+    "id": "ChIJW_SeZ09zkFQR3M5g1R01NJ4",
+    "created_at": "2024-10-26T20:09:30.717376+00:00",
+    "title": "Cypress Coffee Company",
+    "hours": "Monday:6:00AM–4:00PM\nTuesday:6:00AM–4:00PM\nWednesday:6:00AM–4:00PM\nThursday:6:00AM–4:00PM\nFriday:6:00AM–4:00PM\nSaturday:7:00AM–4:00PM\nSunday:7:00AM–1:00PM",
+    "latitude": 47.6944167,
+    "longitude": -122.0425667,
+    "address": "22310 NE Marketplace Dr # 102, Redmond, WA 98053, USA",
+    "tags": null,
+    "image": null,
+    "summary": null,
+    "rating": 10,
+    "num_reviews": 0
+  }
 ]
 ```
 
@@ -119,12 +119,13 @@ Another request:
   "query": "verve",
   "sortBy": "relevance",
   "customTime": {
-      "day": 2,
-      "time": "0700"
+    "day": 2,
+    "time": "0700"
   },
-  "geolocation": { // geolocation of santa cruz, ca
-      "lat": 36.974117,
-      "lng": -122.030792
+  "geolocation": {
+    // geolocation of santa cruz, ca
+    "lat": 36.974117,
+    "lng": -122.030792
   }
 }
 ```
