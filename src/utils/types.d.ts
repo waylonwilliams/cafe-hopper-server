@@ -16,7 +16,7 @@ import { PlaceData } from '@googlemaps/google-maps-services-js';
  **/
 export type Cafe = {
   id: string;
-  title: string;
+  name: string;
   address: string;
   latitude: number;
   longitude: number;
@@ -26,6 +26,7 @@ export type Cafe = {
   image?: string;
   num_reviews?: number;
   rating?: number;
+  summary?: string;
 };
 
 /**

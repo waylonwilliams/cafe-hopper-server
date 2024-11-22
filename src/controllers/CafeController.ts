@@ -1,11 +1,6 @@
 import { Request, Response } from 'express';
 import PlacesAPI from '@/utils/googlemaps/Places';
-import {
-  CreateNewCafesFromPlaceData,
-  PushNewCafesToSupabase,
-  GetCafesByIDAndQuery,
-  calculateDistance,
-} from '@/utils/supabase/Cafe';
+import CafeModel from '@/utils/supabase/Cafe';
 import { PlaceDataWithId, CafeSearchRequest, CafeSearchResponse } from '@/utils/types';
 
 /**
@@ -48,7 +43,7 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     // build the request object
     const cafeRequest: CafeSearchRequest = {
       query: req.body.query,
-      radius: req.body.radius,
+      radius: req.body.radius || 1000,
       geolocation: req.body.geolocation,
       openNow: req.body.openNow,
       tags: req.body.tags,
@@ -84,14 +79,18 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
       detailedPlacesWithIDs = filteredPlaces;
     }
 
-    // if no places are found, return an empty array
+    // if no places are found, return no cafes
     if (detailedPlacesWithIDs.length === 0) {
-      res.status(200).json([]);
+      const response: CafeSearchResponse = {
+        cafes: [],
+        error: '',
+      };
+      res.status(200).json(response);
       return;
     }
 
     // create new Cafe objects from the place data
-    const cafesFromPlaceData = CreateNewCafesFromPlaceData(detailedPlacesWithIDs);
+    const cafesFromPlaceData = CafeModel.CreateNewCafesFromPlaceData(detailedPlacesWithIDs);
     if (cafesFromPlaceData instanceof Error) {
       res.status(400).json({ error: cafesFromPlaceData.message });
       throw cafesFromPlaceData;
@@ -100,11 +99,10 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     // get the Place IDs of the Place data to query Supabase
     const cafePlaceIds = cafesFromPlaceData.map((cafe) => cafe.id);
 
-    const cafesSupabase = await GetCafesByIDAndQuery(cafePlaceIds, cafeRequest);
+    const cafesFromSupabase = await CafeModel.GetCafesByIDAndQuery(cafePlaceIds, cafeRequest);
 
-    if (cafesSupabase instanceof Error) {
-      res.status(400).json({ error: cafesSupabase.message });
-      throw cafesSupabase;
+    if (cafesFromSupabase instanceof Error) {
+      throw cafesFromSupabase;
     }
 
     // Check if tags are provided in the request body
@@ -112,25 +110,21 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
       // we already queried the cafes from supabase with the given tags
       // and since tags are only on cafes in the database, we
       // can return the cafes right now.
-      res.json(cafesSupabase);
+      const response: CafeSearchResponse = {
+        cafes: cafesFromSupabase,
+        error: '',
+      };
+      res.json(response);
       return;
     }
 
     // If no tags are provided, we need to push the new cafes to supabase if we found any
     const cafesToPush = cafesFromPlaceData.filter((cafe) => {
-      return !cafesSupabase.find((cafeSupabase) => cafeSupabase.id === cafe.id);
+      return !cafesFromSupabase.find((cafeSupabase) => cafeSupabase.id === cafe.id);
     });
 
-    if (cafesToPush.length > 0) {
-      const err = await PushNewCafesToSupabase(cafesToPush);
-      if (err instanceof Error) {
-        res.status(400).json({ error: err.message });
-        throw err;
-      }
-    }
-
     const searchResponse: CafeSearchResponse = {
-      cafes: [...cafesSupabase, ...cafesToPush],
+      cafes: [...cafesFromSupabase, ...cafesToPush],
       error: '',
     };
 
@@ -142,8 +136,8 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
         searchResponse.cafes.sort((a, b) => {
           const cafeALocation = { lat: a.latitude, lng: a.longitude };
           const cafeBLocation = { lat: b.latitude, lng: b.longitude };
-          const distanceA = calculateDistance(userLocation, cafeALocation);
-          const distanceB = calculateDistance(userLocation, cafeBLocation);
+          const distanceA = CafeModel.helpers.calculateDistance(userLocation, cafeALocation);
+          const distanceB = CafeModel.helpers.calculateDistance(userLocation, cafeBLocation);
           return distanceA - distanceB;
         });
       }
@@ -152,8 +146,8 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     if (sortBy === 'relevance') {
       const lowerCaseQuery = query?.toLowerCase();
       searchResponse.cafes.sort((a, b) => {
-        const titleA = a.title.toLowerCase();
-        const titleB = b.title.toLowerCase();
+        const titleA = a.name.toLowerCase();
+        const titleB = b.name.toLowerCase();
         const titleAMatch = titleA.includes(lowerCaseQuery || '');
         const titleBMatch = titleB.includes(lowerCaseQuery || '');
         if (titleAMatch && !titleBMatch) {
@@ -167,6 +161,17 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     }
 
     res.json(searchResponse);
+
+    // After sending the response, push the new cafes to supabase
+    if (cafesToPush.length > 0) {
+      const err = await CafeModel.PushNewCafesToSupabase(cafesToPush);
+      if (err instanceof Error) {
+        console.log(err);
+        // throwing an error here would mean the user gets an error for something
+        // out of their control, so we should just log it.
+        return;
+      }
+    }
   } catch (error) {
     res.status(500).json({ error: 'An unexpected error occurred', message: error });
   }

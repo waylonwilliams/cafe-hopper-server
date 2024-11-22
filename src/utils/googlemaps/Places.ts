@@ -17,12 +17,12 @@ export const TextSearch = (cafeSearchReq: CafeSearchRequest): Promise<TextSearch
   }
 
   // const location = // lat, lng
-  const location = `${cafeSearchReq.geolocation?.lat},${cafeSearchReq.geolocation?.lng}`;
+  const geolocation = `${cafeSearchReq.geolocation?.lat},${cafeSearchReq.geolocation?.lng}`;
 
   return MapsClient.textSearch({
     params: {
-      location: location,
-      radius: cafeSearchReq.radius || 500,
+      location: geolocation,
+      radius: cafeSearchReq.radius,
       query: cafeSearchReq.query || 'cafe', // default to cafe if no query set explicitly
       opennow: cafeSearchReq.openNow || undefined,
       key: API_KEY,
