@@ -12,11 +12,11 @@ describe('CafeRoutes', () => {
     const response = await request(app)
       .post('/cafes/search')
       .send({
-        query: 'Abbey',
+        query: 'Verve',
         radius: 5000,
         geolocation: {
-          lat: 51.5074,
-          lng: 0.1278,
+          lat: 36.99615335186937,
+          lng: -122.05984320144475,
         },
       });
 
@@ -44,8 +44,8 @@ describe('CafeRoutes', () => {
         query: 'Abbey',
         radius: 5000,
         geolocation: {
-          lat: 51.5074,
-          lng: 0.1278,
+          lat: 36.99615335186937,
+          lng: -122.05984320144475,
         },
         sortBy: 'popularity',
       });
@@ -58,7 +58,7 @@ describe('CafeRoutes', () => {
     const response = await request(app)
       .post('/cafes/search')
       .send({
-        query: 'Stevenson Coffee',
+        query: 'Verve',
         radius: 5000,
         geolocation: {
           lat: 36.99615335186937,
