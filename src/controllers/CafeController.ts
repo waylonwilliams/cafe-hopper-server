@@ -324,6 +324,7 @@ export const searchCafesV3 = async (req: Request, res: Response): Promise<void> 
 
     res.json([...cafesSupabase, ...cafesToPush]);
   } catch (error) {
-    res.status(500).json({ error: 'An unexpected error occurred', message: error });
+    // res.status(500).json({ error: 'An unexpected error occurred', message: error });
+    console.error(error);
   }
 };

@@ -241,7 +241,7 @@ export async function GetCafesByIDAndQuery(
   let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
 
   if (query) {
-    cafesQuery = cafesQuery.ilike('title', `%${query}%`);
+    cafesQuery = cafesQuery.ilike('name', `%${query}%`); // database column is name not title
   }
 
   if (geolocation && radius) {
