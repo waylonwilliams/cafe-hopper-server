@@ -3,6 +3,15 @@ import type { PlaceDetailsResponse, TextSearchResponse } from '@googlemaps/googl
 import { PlaceType1 } from '@googlemaps/google-maps-services-js';
 import { CafeSearchRequest, PlaceDataWithId } from '@/utils/types';
 
+const detailFields = [
+  'opening_hours/weekday_text',
+  'opening_hours/periods',
+  'name',
+  'formatted_address',
+  'geometry',
+  'icon_mask_base_uri',
+];
+
 /**
  * @name TextSearch
  * @description
@@ -16,9 +25,10 @@ export const TextSearch = (cafeSearchReq: CafeSearchRequest): Promise<TextSearch
     throw new Error('API Key not set');
   }
 
-  // const location = // lat, lng
   const geolocation = `${cafeSearchReq.geolocation?.lat},${cafeSearchReq.geolocation?.lng}`;
 
+  // Use the Google Maps Text Search API to search for cafes since they can
+  // Handle the query parameters like radius, openNow, etc. already.
   return MapsClient.textSearch({
     params: {
       location: geolocation,
@@ -57,14 +67,7 @@ export const GetPlaceDetailsByID = (
     params: {
       place_id: place_id,
       key: process.env.GOOGLE_MAPS_API_KEY || '',
-      fields: [
-        'opening_hours/weekday_text',
-        'opening_hours/periods',
-        'name',
-        'formatted_address',
-        'geometry',
-        'icon_mask_base_uri',
-      ],
+      fields: detailFields,
     },
   });
 };

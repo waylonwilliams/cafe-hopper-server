@@ -1,8 +1,3 @@
-/**
- * @name Cafe
- * @description
- * This file handles main logic for handling data from the Cafes table in Supabase.
- */
 import { serviceClient } from '@/utils/supabase/Client';
 import { Cafe, PlaceDataWithId, CafeSearchRequest } from '@types';
 
@@ -59,6 +54,8 @@ export function CreateNewCafesFromPlaceData(places: PlaceDataWithId[]): Cafe[] |
     if (!place.name) {
       return new Error('Name is required');
     }
+
+    // Pass in the basic information and initialize the rest of the fields to zero states.
     const cafe: Cafe = {
       id: place.place_id,
       name: place.name,
@@ -80,8 +77,15 @@ export function CreateNewCafesFromPlaceData(places: PlaceDataWithId[]): Cafe[] |
   return cafes;
 }
 
-// Helper function to calculate distance between two locations
-export function calculateDistance(
+/**
+ * @name calculateDistance
+ * @param userLocation - The user's location.
+ * @param cafeLocation - The cafe's location.
+ * @returns The distance between the user and the cafe.
+ * @description
+ * Calculate the distance between the user and the cafe.
+ */
+function calculateDistance(
   userLocation: { lat: number; lng: number },
   cafeLocation: { lat: number; lng: number },
 ): number {
@@ -105,7 +109,7 @@ export function calculateDistance(
 
 /**
  * @name GetCafesByIDAndQuery
- * @param ids - The ids of the cafes to query.
+ * @param ids - The ids of the cafes to fetch.
  * @param req - The request object.
  * @returns The cafes that match the query, or an error if there is one.
  * @description
@@ -120,23 +124,27 @@ export async function GetCafesByIDAndQuery(
 
   const { query, geolocation, tags, sortBy, rating } = req;
 
-  // dynamic query based on the request
+  // Whatever Place_ids that were received from Places API TextSearch, we use here.
   let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
 
+  // Filter by tags if provided
   if (tags && tags.length > 0) {
     cafesQuery = cafesQuery.contains('tags', tags);
   }
 
+  // Filter by rating if provided
   if (rating) {
     cafesQuery = cafesQuery.gte('rating', rating);
   }
 
+  // Fetch the cafes
   const { data, error } = await cafesQuery;
 
   if (error) {
     return new Error('Error querying cafes');
   }
 
+  // And we also sort the cafes by distance or relevance if provided
   if (sortBy === 'distance') {
     // sort by distance
     const userLocation = geolocation;
