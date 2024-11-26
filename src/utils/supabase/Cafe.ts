@@ -123,10 +123,6 @@ export async function GetCafesByIDAndQuery(
   // dynamic query based on the request
   let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
 
-  // if (query) {
-  //   cafesQuery = cafesQuery.ilike('name', `%${query}%`);
-  // }
-
   if (tags && tags.length > 0) {
     cafesQuery = cafesQuery.contains('tags', tags);
   }
