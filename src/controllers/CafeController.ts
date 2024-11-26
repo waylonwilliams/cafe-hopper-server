@@ -24,19 +24,31 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
       !req.body.openNow &&
       !req.body.tags
     ) {
-      res.status(400).json({ error: 'No search options provided' });
+      const response: CafeSearchResponse = {
+        cafes: [],
+        error:
+          'At least one of the following fields is required: query, radius, location, geolocation, openNow, tags',
+      };
+      res.status(400).json(response);
       return;
     }
 
     // check if valid geolocation is provided
     if (req.body.geolocation && (!req.body.geolocation.lat || !req.body.geolocation.lng)) {
-      res.status(400).json({ error: 'geolocation must have lat and lng' });
-      return;
+      const response: CafeSearchResponse = {
+        cafes: [],
+        error: 'geolocation must have lat and lng',
+      };
+      res.status(400).json(response);
     }
 
     // check if a valid sortBy is provided
     if (req.body.sortBy && !['distance', 'relevance'].includes(req.body.sortBy)) {
-      res.status(400).json({ error: 'sortBy must be either distance or relevance' });
+      const response: CafeSearchResponse = {
+        cafes: [],
+        error: 'sortBy must be set to either distance or relevance if provided',
+      };
+      res.status(400).json(response);
       return;
     }
 
@@ -92,7 +104,6 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     // create new Cafe objects from the place data
     const cafesFromPlaceData = CafeModel.CreateNewCafesFromPlaceData(detailedPlacesWithIDs);
     if (cafesFromPlaceData instanceof Error) {
-      res.status(400).json({ error: cafesFromPlaceData.message });
       throw cafesFromPlaceData;
     }
 
@@ -173,6 +184,14 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
       }
     }
   } catch (error) {
-    res.status(500).json({ error: 'An unexpected error occurred', message: error });
+    console.log(error);
+    if (res.headersSent) {
+      return;
+    }
+    const response: CafeSearchResponse = {
+      cafes: [],
+      error: 'An error occurred while searching for cafes',
+    };
+    res.status(500).json(response);
   }
 };
