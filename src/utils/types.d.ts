@@ -16,7 +16,7 @@ import { PlaceData } from '@googlemaps/google-maps-services-js';
  **/
 export type Cafe = {
   id: string;
-  title: string;
+  name: string;
   address: string;
   latitude: number;
   longitude: number;
@@ -26,14 +26,15 @@ export type Cafe = {
   image?: string;
   num_reviews?: number;
   rating?: number;
+  summary?: string;
 };
 
 /**
  *
  * @name PlaceDataWithId
  * @description
- * The PlaceDataWithId type, basically just PlaceData but with the place_id for supabase.
- *
+ * The PlaceDataWithId type, basically just PlaceData (from Google Maps Places API)
+ * but with the place_id for querying Supabase.
  * @example
  * import { PlaceDataWithId } from "./utils/types";
  **/

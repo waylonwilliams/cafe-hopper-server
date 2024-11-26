@@ -1,3 +1,8 @@
+/**
+ * @name Cafe
+ * @description
+ * This file handles main logic for handling data from the Cafes table in Supabase.
+ */
 import { serviceClient } from '@/utils/supabase/Client';
 import { Cafe, PlaceDataWithId, CafeSearchRequest } from '@types';
 
@@ -56,12 +61,18 @@ export function CreateNewCafesFromPlaceData(places: PlaceDataWithId[]): Cafe[] |
     }
     const cafe: Cafe = {
       id: place.place_id,
-      title: place.name,
+      name: place.name,
       address: place.formatted_address || 'No address found',
-      latitude: place.geometry?.location.lat || 0, // should probably set this to a better number but will set it to 0 for now
+      latitude: place.geometry?.location.lat || 0,
       longitude: place.geometry?.location.lng || 0,
       hours:
-        place.opening_hours?.weekday_text.join('\n').replace(/[ \u00A0\u2009\u202F]/g, '') || '', // get rid of all whitespace but preserve the newline characters
+        // get rid of all whitespace but preserve the newline characters
+        place.opening_hours?.weekday_text.join('\n').replace(/[ \u00A0\u2009\u202F]/g, '') || '',
+      tags: [],
+      image: '',
+      num_reviews: 0,
+      rating: 0,
+      summary: '',
     };
     cafes.push(cafe);
   });
@@ -69,60 +80,7 @@ export function CreateNewCafesFromPlaceData(places: PlaceDataWithId[]): Cafe[] |
   return cafes;
 }
 
-/**
- * @author Arveen Azhand
- * @name QueryCafesByName
- * @param name - The name of the cafe to query.
- * @returns The cafes that match the name, or an error if there is one.
- * @description
- * Query cafes by name.
- * @example
- * const cafes = await QueryCafesByName("verve");
- */
-export async function QueryCafesByName(name: string): Promise<Cafe[] | Error> {
-  const supabase = serviceClient();
-
-  const data = await supabase
-    .from('cafes')
-    .select('*')
-    .ilike('title', `%${name}%`)
-    .then((response) => {
-      if (response.error) {
-        return response.error;
-      }
-      return response.data;
-    });
-
-  if ('error' in data) {
-    return new Error('Error querying cafes');
-  }
-
-  return data as Cafe[];
-}
-
-function getBoundingBox(lat: number, lng: number, radius: number) {
-  const radiusInKm = radius / 1000;
-  const radiusOfEarth = 6371;
-  const angularDistance = radiusInKm / radiusOfEarth;
-  const latInRadians = lat * (Math.PI / 180);
-  const lngInRadians = lng * (Math.PI / 180);
-  const minLat = latInRadians - angularDistance;
-  const maxLat = latInRadians + angularDistance;
-  const minLng = lngInRadians - angularDistance;
-  const maxLng = lngInRadians + angularDistance;
-  const minLatInDegrees = minLat * (180 / Math.PI);
-  const maxLatInDegrees = maxLat * (180 / Math.PI);
-  const minLngInDegrees = minLng * (180 / Math.PI);
-  const maxLngInDegrees = maxLng * (180 / Math.PI);
-
-  return {
-    minLat: minLatInDegrees,
-    maxLat: maxLatInDegrees,
-    minLng: minLngInDegrees,
-    maxLng: maxLngInDegrees,
-  };
-}
-
+// Helper function to calculate distance between two locations
 export function calculateDistance(
   userLocation: { lat: number; lng: number },
   cafeLocation: { lat: number; lng: number },
@@ -145,81 +103,6 @@ export function calculateDistance(
   return R * 2 * Math.asin(Math.sqrt(a));
 }
 
-export async function DynamicCafeQuery(req: CafeSearchRequest): Promise<Cafe[] | Error> {
-  const supabase = serviceClient();
-  const { query, geolocation, radius, openNow, tags } = req;
-
-  // dynamic query based on the request
-  let cafesQuery = supabase.from('cafes').select('*');
-
-  if (query) {
-    cafesQuery = cafesQuery.ilike('title', `%${query}%`);
-  }
-
-  if (geolocation && radius) {
-    const { lat, lng } = geolocation;
-    const { minLat, maxLat, minLng, maxLng } = getBoundingBox(lat, lng, radius);
-
-    cafesQuery = cafesQuery
-      .gte('latitude', minLat)
-      .lte('latitude', maxLat)
-      .gte('longitude', minLng)
-      .lte('longitude', maxLng);
-  }
-
-  if (openNow) {
-    // const currentTime = new Date().getHours();
-    // have to figure this out somehow.
-  }
-
-  if (location) {
-    cafesQuery = cafesQuery.ilike('address', `%${location}%`);
-  }
-
-  if (tags && tags.length > 0) {
-    cafesQuery = cafesQuery.contains('tags', tags);
-  }
-
-  const { data, error } = await cafesQuery;
-
-  if (error) {
-    return new Error('Error querying cafes');
-  }
-
-  // we should sort the cafes by priority:
-  // 1. if the title matches the query
-  // 2. how close the location is to the user
-
-  const sortedCafes = data?.sort((a, b) => {
-    // sort title by relevance
-    const titleA = a.title.toLowerCase();
-    const titleB = b.title.toLowerCase();
-    const lowerCaseQuery = query?.toLowerCase();
-    const titleAMatch = titleA.includes(lowerCaseQuery || '');
-    const titleBMatch = titleB.includes(lowerCaseQuery || '');
-    if (titleAMatch && !titleBMatch) {
-      return -1;
-    }
-    if (!titleAMatch && titleBMatch) {
-      return 1;
-    }
-
-    // sort by distance
-    const userLocation = geolocation;
-    if (userLocation) {
-      const cafeALocation = { lat: a.latitude, lng: a.longitude };
-      const cafeBLocation = { lat: b.latitude, lng: b.longitude };
-      const distanceA = calculateDistance(userLocation, cafeALocation);
-      const distanceB = calculateDistance(userLocation, cafeBLocation);
-      return distanceA - distanceB;
-    }
-
-    return 0;
-  });
-
-  return sortedCafes as Cafe[];
-}
-
 /**
  * @name GetCafesByIDAndQuery
  * @param ids - The ids of the cafes to query.
@@ -235,29 +118,14 @@ export async function GetCafesByIDAndQuery(
 ): Promise<Cafe[] | Error> {
   const supabase = serviceClient();
 
-  const { query, geolocation, radius, tags, sortBy, rating } = req;
+  const { query, geolocation, tags, sortBy, rating } = req;
 
   // dynamic query based on the request
   let cafesQuery = supabase.from('cafes').select('*').in('id', ids);
 
-  if (query) {
-    cafesQuery = cafesQuery.ilike('title', `%${query}%`);
-  }
-
-  if (geolocation && radius) {
-    const { lat, lng } = geolocation;
-    const { minLat, maxLat, minLng, maxLng } = getBoundingBox(lat, lng, radius);
-
-    cafesQuery = cafesQuery
-      .gte('latitude', minLat)
-      .lte('latitude', maxLat)
-      .gte('longitude', minLng)
-      .lte('longitude', maxLng);
-  }
-
-  //   if (location) {
-  //     cafesQuery = cafesQuery.ilike('address', `%${location}%`);
-  //   }
+  // if (query) {
+  //   cafesQuery = cafesQuery.ilike('name', `%${query}%`);
+  // }
 
   if (tags && tags.length > 0) {
     cafesQuery = cafesQuery.contains('tags', tags);
@@ -285,13 +153,14 @@ export async function GetCafesByIDAndQuery(
         return distanceA - distanceB;
       });
 
+      // make sure all fields of cafes are present
       return sortedCafes as Cafe[];
     }
   } else {
     // sort by relevance
     const sortedCafes = data?.sort((a, b) => {
-      const titleA = a.title.toLowerCase();
-      const titleB = b.title.toLowerCase();
+      const titleA = a.name.toLowerCase();
+      const titleB = b.name.toLowerCase();
       const lowerCaseQuery = query?.toLowerCase();
       const titleAMatch = titleA.includes(lowerCaseQuery || '');
       const titleBMatch = titleB.includes(lowerCaseQuery || '');
@@ -309,3 +178,14 @@ export async function GetCafesByIDAndQuery(
 
   return data as Cafe[];
 }
+
+const CafeModel = {
+  PushNewCafesToSupabase,
+  CreateNewCafesFromPlaceData,
+  GetCafesByIDAndQuery,
+  helpers: {
+    calculateDistance,
+  },
+};
+
+export default CafeModel;
