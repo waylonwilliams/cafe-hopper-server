@@ -184,3 +184,33 @@ const cafeRequest: CafeSearchRequest = {
 - **Response**
   - 200 - Returns an array of Cafe objects that match the search query. I would look at the Cafe type for more information.
   - 400 - Returns an error message if the query is invalid.
+
+**_PUT_** '/cafes/ping'
+
+**Query Params**
+
+- 'cafeId' - The ID of the cafe a review was just written for.
+- 'rating' - The rating of the review that was just written
+
+Note: This route just acts as a job, you don't need to worry about its return value. This just cleans up our data in the database.
+
+## Examples
+
+Example fetch request:
+
+```typescript
+fetch('localhost:3000/cafes/ping', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    cafeId: data.cafe_id,
+    rating: rating,
+  }),
+});
+```
+
+- **Response**
+  - 200 - Returns "Thanks!"
+  - 500 - Returns an error message if the query is invalid or if something else goes wrong.
