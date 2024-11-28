@@ -1,9 +1,16 @@
-# cafe-hopper-server
+# Cafe Hopper Backend
 
 ```sh
 npm i
 npm run start
 ```
+
+## Directory Structure
+
+- **[src/controllers](./src/controllers/)** - Contains the controllers for the application.
+- **[src/utils](./src/utils/)** - Contains utility functions that are used throughout the application.
+- **[src/\__tests\__](./src/__tests__)** - Contains the test suites for the backend.
+- **[src/routes](./src/routes/)** - Contains the routes for the backend.
 
 ## Types
 
@@ -167,7 +174,7 @@ Response:
 ]
 ```
 
-Here is an example of how I plan to use the tags (it's pretty simple):
+Here is an example of how I plan to use the fields (it's pretty simple):
 
 ```typescript
 const cafeRequest: CafeSearchRequest = {
@@ -187,16 +194,14 @@ const cafeRequest: CafeSearchRequest = {
 
 **_PUT_** '/cafes/ping'
 
-**Query Params**
+- **Query Params**
 
 - 'cafeId' - The ID of the cafe a review was just written for.
 - 'rating' - The rating of the review that was just written
 
 Note: This route just acts as a job, you don't need to worry about its return value. This just cleans up our data in the database.
 
-## Examples
-
-Example fetch request:
+## Example fetch request
 
 ```typescript
 fetch('localhost:3000/cafes/ping', {
@@ -214,3 +219,7 @@ fetch('localhost:3000/cafes/ping', {
 - **Response**
   - 200 - Returns "Thanks!"
   - 500 - Returns an error message if the query is invalid or if something else goes wrong.
+
+## Style Guide
+
+This project adheres the [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)
