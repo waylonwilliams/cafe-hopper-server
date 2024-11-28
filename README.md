@@ -12,7 +12,6 @@ npm run start
 - **[src/\__tests\__](./src/__tests__)** - Contains the test suites for the backend.
 - **[src/routes](./src/routes/)** - Contains the routes for the backend.
 
-
 ## Types
 
 We have a few types that are used throughout the application, and there will be more added soon.
