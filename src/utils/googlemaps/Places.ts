@@ -96,30 +96,37 @@ export function FilterPlacesByTime(
   time: string,
   day: number,
 ): PlaceDataWithId[] {
-  const timeInMinutes = timeToMinutes(time);
+  const timeInMinutes = time ? timeToMinutes(time) : null;
 
   return places.filter((place) => {
     const openingHours = place.opening_hours?.periods || [];
 
     return openingHours.some((period) => {
-      if (period.open?.day === day) {
-        const openTime = timeToMinutes(period.open.time);
-        const closeTime = timeToMinutes(period.close?.time);
+      const isDayMatch = day === undefined || period.open?.day === day;
 
-        if (openTime === 0 || closeTime === 0) {
-          return false;
-        }
-
-        if (openTime <= timeInMinutes && timeInMinutes <= closeTime) {
-          return true;
-        }
-
-        if (openTime > closeTime && (openTime <= timeInMinutes || timeInMinutes <= closeTime)) {
-          return true;
-        }
-
+      if (!isDayMatch) {
         return false;
       }
+
+      // if no time is provided only check filter by day
+      if (!timeInMinutes) {
+        return true;
+      }
+
+      // if time is provided, check if the place is open at that time
+      const openTime = timeToMinutes(period.open?.time);
+      const closeTime = timeToMinutes(period.close?.time);
+
+      // Handle normal open-close ranges
+      if (openTime <= timeInMinutes && timeInMinutes <= closeTime) {
+        return true;
+      }
+
+      // Handle overnight ranges (e.g., open at 10 PM and close at 2 AM)
+      if (openTime > closeTime && (openTime <= timeInMinutes || timeInMinutes <= closeTime)) {
+        return true;
+      }
+
       return false;
     });
   });
