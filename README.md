@@ -219,3 +219,7 @@ fetch('localhost:3000/cafes/ping', {
 - **Response**
   - 200 - Returns "Thanks!"
   - 500 - Returns an error message if the query is invalid or if something else goes wrong.
+
+## Style Guide
+
+This project adheres the [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)
