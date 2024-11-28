@@ -9,7 +9,7 @@ npm run start
 
 - **[src/controllers](./src/controllers/)** - Contains the controllers for the application.
 - **[src/utils](./src/utils/)** - Contains utility functions that are used throughout the application.
-- **[src/\__tests\__](./src/__tests__)** - Contains the test suites for the backend.
+- **[src/\_\_tests\_\_](./src/__tests__)** - Contains the test suites for the backend.
 - **[src/routes](./src/routes/)** - Contains the routes for the backend.
 
 ## Types
