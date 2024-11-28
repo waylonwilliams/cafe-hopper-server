@@ -33,7 +33,7 @@ export const reviewPing = async (req: Request, res: Response): Promise<void> => 
   try {
     const { cafeId, rating } = req.body;
     if (!cafeId || !rating) {
-      throw `No cafe id or rating provided, include them in the body of your request.
+      res.status(500).send(`No cafe id or rating provided, include them in the body of your request.
       
       Example: fetch(process.env.EXPO_PUBLIC_SERVER_URL + 'cafes/ping', {
           method: 'PUT',
@@ -44,7 +44,8 @@ export const reviewPing = async (req: Request, res: Response): Promise<void> => 
             cafeId: data.cafe_id,
             rating: rating,
           }),
-        })`;
+        })`);
+      return;
     }
 
     const supabase = serviceClient();
