@@ -1,4 +1,4 @@
-import { MapsClient } from '@/utils/googlemaps/Client';
+import { mapsClient } from '@/utils/googlemaps/Client';
 import type { PlaceDetailsResponse, TextSearchResponse } from '@googlemaps/google-maps-services-js';
 import { PlaceType1 } from '@googlemaps/google-maps-services-js';
 import { CafeSearchRequest, PlaceDataWithId } from '@/utils/types';
@@ -13,13 +13,14 @@ const detailFields = [
 ];
 
 /**
- * @name TextSearch
+ * @author Arveen Azhand
+ * @name textSearch
  * @description
  * The Google Maps Text Search API.
  *
  * @param cafeSearchReq - The cafe search request.
  */
-export const TextSearch = (cafeSearchReq: CafeSearchRequest): Promise<TextSearchResponse> => {
+export const textSearch = (cafeSearchReq: CafeSearchRequest): Promise<TextSearchResponse> => {
   const API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
   if (API_KEY === '') {
     throw new Error('API Key not set');
@@ -29,7 +30,7 @@ export const TextSearch = (cafeSearchReq: CafeSearchRequest): Promise<TextSearch
 
   // Use the Google Maps Text Search API to search for cafes since they can
   // Handle the query parameters like radius, openNow, etc. already.
-  return MapsClient.textSearch({
+  return mapsClient.textSearch({
     params: {
       location: geolocation,
       radius: cafeSearchReq.radius,
@@ -43,16 +44,13 @@ export const TextSearch = (cafeSearchReq: CafeSearchRequest): Promise<TextSearch
 
 /**
  * @author Arveen Azhand
- * @name GetPlaceDetails
+ * @name getPlaceDetails
  * @description
  * The Google Maps Place Details API.
  *
- * @example
- * import { GetPlaceDetails } from "./utils/maps/places/GetPlaceDetails";
- *
  * @param place_id - The place ID.
  */
-export const GetPlaceDetailsByID = (
+export const getPlaceDetailsByID = (
   place_id: string | undefined,
 ): Promise<PlaceDetailsResponse> => {
   if (!place_id) {
@@ -63,7 +61,7 @@ export const GetPlaceDetailsByID = (
     throw new Error('API Key not set');
   }
 
-  return MapsClient.placeDetails({
+  return mapsClient.placeDetails({
     params: {
       place_id: place_id,
       key: process.env.GOOGLE_MAPS_API_KEY || '',
@@ -72,7 +70,13 @@ export const GetPlaceDetailsByID = (
   });
 };
 
-// helper function to convert time to minutes
+/**
+ * @name timeToMinutes
+ * @description
+ * Helper function: Converts a time string to minutes.
+ *
+ * @param time - The time to convert.
+ */
 function timeToMinutes(time: string | undefined): number {
   if (!time) {
     return 0;
@@ -83,6 +87,7 @@ function timeToMinutes(time: string | undefined): number {
 }
 
 /**
+ * @author Arveen Azhand
  * @name filterPlacesByTime
  * @description
  * Filters places by time.
@@ -91,7 +96,7 @@ function timeToMinutes(time: string | undefined): number {
  * @param time - The time to filter by.
  * @param day - The day to filter by.
  */
-export function FilterPlacesByTime(
+export function filterPlacesByTime(
   places: PlaceDataWithId[],
   time: string,
   day: number,
@@ -133,9 +138,9 @@ export function FilterPlacesByTime(
 }
 
 const PlacesAPI = {
-  TextSearch,
-  GetPlaceDetailsByID,
-  FilterPlacesByTime,
+  textSearch,
+  getPlaceDetailsByID,
+  filterPlacesByTime,
 };
 
 export default PlacesAPI;

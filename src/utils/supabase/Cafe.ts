@@ -3,13 +3,13 @@ import { Cafe, PlaceDataWithId, CafeSearchRequest } from '@types';
 
 /**
  * @author Arveen Azhand
- * @name PushCafesToSupabase
+ * @name pushCafesToSupabase
  * @param cafes
  * @returns An error if there is one.
  * @description
  * Push cafes to Supabase.
  */
-export async function PushNewCafesToSupabase(cafes: Cafe[]): Promise<Error | Cafe[]> {
+export async function pushNewCafesToSupabase(cafes: Cafe[]): Promise<Error | Cafe[]> {
   const supabase = serviceClient();
 
   const cafeIds = cafes.map((cafe) => cafe.id);
@@ -42,13 +42,13 @@ export async function PushNewCafesToSupabase(cafes: Cafe[]): Promise<Error | Caf
 
 /**
  * @author Arveen Azhand
- * @name CreateNewCafesFromPlaceData
+ * @name createNewCafesFromPlaceData
  * @param places
  * @returns The cafes created from the place data, or an error if there is one.
  * @description
  * Create new cafes from place API data.
  */
-export function CreateNewCafesFromPlaceData(places: PlaceDataWithId[]): Cafe[] | Error {
+export function createNewCafesFromPlaceData(places: PlaceDataWithId[]): Cafe[] | Error {
   const cafes: Cafe[] = [];
   places.forEach((place) => {
     if (!place.name) {
@@ -108,7 +108,7 @@ function calculateDistance(
 }
 
 /**
- * @name GetCafesByIDAndQuery
+ * @name getCafesByIDAndQuery
  * @param ids - The ids of the cafes to fetch.
  * @param req - The request object.
  * @returns The cafes that match the query, or an error if there is one.
@@ -116,7 +116,7 @@ function calculateDistance(
  *
  * Get cafes by id and query.
  */
-export async function GetCafesByIDAndQuery(
+export async function getCafesByIDAndQuery(
   ids: string[],
   req: CafeSearchRequest,
 ): Promise<Cafe[] | Error> {
@@ -184,9 +184,9 @@ export async function GetCafesByIDAndQuery(
 }
 
 const CafeModel = {
-  PushNewCafesToSupabase,
-  CreateNewCafesFromPlaceData,
-  GetCafesByIDAndQuery,
+  pushNewCafesToSupabase,
+  createNewCafesFromPlaceData,
+  getCafesByIDAndQuery,
   helpers: {
     calculateDistance,
   },

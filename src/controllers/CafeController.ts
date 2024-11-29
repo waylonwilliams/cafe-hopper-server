@@ -4,9 +4,9 @@ import CafeModel from '@/utils/supabase/Cafe';
 import { PlaceDataWithId, CafeSearchRequest, CafeSearchResponse } from '@/utils/types';
 
 /**
- * searchForCafes. This is the main logic behind the cafe search functionality.
+ * @name searchForCafes. This is the main logic behind the cafe search functionality.
  * @description
- * This version leverages Google Maps Places API **first** for their versatile searching capabilities.
+ * This function leverages Google Maps Places API TextSearch **first** for their versatile searching capabilities.
  * We will use the places_id to query our Supabase database for cafes.
  * @param {Request} req - Express request object.
  * @param {Response} res - Express response object.
@@ -65,7 +65,7 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     };
 
     // Get basic place data from TextSearch.
-    const textSearchResponse = await PlacesAPI.TextSearch(cafeRequest);
+    const textSearchResponse = await PlacesAPI.textSearch(cafeRequest);
     const textSearchResults = textSearchResponse.data.results;
     // TextSearch does not give us all the info we want.
     let detailedPlacesWithIDs: PlaceDataWithId[] = [];
@@ -77,7 +77,7 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
         throw new Error('place_id is required');
       }
       // We get Place Details by calling the Google Places API using the IDs we get.
-      const placeDetails = await PlacesAPI.GetPlaceDetailsByID(place.place_id);
+      const placeDetails = await PlacesAPI.getPlaceDetailsByID(place.place_id);
       detailedPlacesWithIDs.push({ ...placeDetails.data.result, place_id: place.place_id });
     }
 
@@ -87,7 +87,7 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
       const day = customTime.day || new Date().getDay();
       const time = customTime.time || '0000';
       // Set up arguments for the filter function
-      const filteredPlaces = PlacesAPI.FilterPlacesByTime(detailedPlacesWithIDs, time, day);
+      const filteredPlaces = PlacesAPI.filterPlacesByTime(detailedPlacesWithIDs, time, day);
       detailedPlacesWithIDs = filteredPlaces;
     }
 
@@ -102,7 +102,7 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     }
 
     // create new Cafe objects from the place data
-    const cafesFromPlaceData = CafeModel.CreateNewCafesFromPlaceData(detailedPlacesWithIDs);
+    const cafesFromPlaceData = CafeModel.createNewCafesFromPlaceData(detailedPlacesWithIDs);
     if (cafesFromPlaceData instanceof Error) {
       throw cafesFromPlaceData;
     }
@@ -110,7 +110,7 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     // get the Place IDs of the Place data to query Supabase
     const cafePlaceIds = cafesFromPlaceData.map((cafe) => cafe.id);
 
-    const cafesFromSupabase = await CafeModel.GetCafesByIDAndQuery(cafePlaceIds, cafeRequest);
+    const cafesFromSupabase = await CafeModel.getCafesByIDAndQuery(cafePlaceIds, cafeRequest);
 
     if (cafesFromSupabase instanceof Error) {
       throw cafesFromSupabase;
@@ -175,7 +175,7 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
 
     // After sending the response, push the new cafes to supabase
     if (cafesToPush.length > 0) {
-      const err = await CafeModel.PushNewCafesToSupabase(cafesToPush);
+      const err = await CafeModel.pushNewCafesToSupabase(cafesToPush);
       if (err instanceof Error) {
         console.log(err);
         // throwing an error here would mean the user gets an error for something
