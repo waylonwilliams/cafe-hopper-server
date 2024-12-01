@@ -1,7 +1,7 @@
 import { Client } from '@googlemaps/google-maps-services-js';
 
 /**
- * @name MapsClient
+ * @name mapsClient
  * @description
  * The Google Maps client.
  *
@@ -10,6 +10,6 @@ import { Client } from '@googlemaps/google-maps-services-js';
  * instantiating the client with the API key.
  *
  * @example
- * import { MapsClient } from "./utils/maps/client";
+ * import { mapsClient } from "./utils/maps/client";
  */
-export const MapsClient = new Client({});
+export const mapsClient = new Client({});
