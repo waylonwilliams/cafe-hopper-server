@@ -90,4 +90,86 @@ describe('CafeRoutes', () => {
     expect(response.body).toHaveProperty('cafes');
     expect(response.body.cafes).toBeInstanceOf(Array);
   });
+
+  it('Searching with a customTime should return 200 and the cafes should be open at that time', async () => {
+    const response = await request(app)
+      .post('/cafes/search')
+      .send({
+        query: 'Verve',
+        radius: 5000,
+        geolocation: {
+          lat: 36.99615335186937,
+          lng: -122.05984320144475,
+        },
+        customTime: {
+          day: 0,
+          time: '0200',
+        },
+      });
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Object);
+    expect(response.body).toHaveProperty('cafes');
+    expect(response.body.cafes).toBeInstanceOf(Array);
+    // nothing should be open at 2am
+    expect(response.body.cafes.length).toBe(0);
+  });
+
+  it('Searching with a customTime should allow either day or time to be omitted', async () => {
+    const response = await request(app)
+      .post('/cafes/search')
+      .send({
+        query: 'Verve',
+        radius: 5000,
+        geolocation: {
+          lat: 36.99615335186937,
+          lng: -122.05984320144475,
+        },
+        customTime: {
+          day: 0,
+        },
+      });
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Object);
+    expect(response.body).toHaveProperty('cafes');
+    expect(response.body.cafes).toBeInstanceOf(Array);
+  });
+
+  it('Searching with an incorrect customTime provided should return 400', async () => {
+    const response = await request(app)
+      .post('/cafes/search')
+      .send({
+        query: 'Verve',
+        radius: 5000,
+        geolocation: {
+          lat: 36.99615335186937,
+          lng: -122.05984320144475,
+        },
+        customTime: {
+          day: 0,
+          time: '25:00',
+        },
+      });
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error');
+  });
+
+  it('Searching by rating should return 200 and the cafes should have at least that rating', async () => {
+    const response = await request(app)
+      .post('/cafes/search')
+      .send({
+        radius: 5000,
+        geolocation: {
+          lat: 36.99615335186937,
+          lng: -122.05984320144475,
+        },
+        rating: 4.5,
+      });
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Object);
+    expect(response.body).toHaveProperty('cafes');
+    expect(response.body.cafes).toBeInstanceOf(Array);
+    response.body.cafes.forEach((cafe: Cafe) => {
+      expect(cafe.rating).toBeGreaterThanOrEqual(4.5);
+    });
+  });
 });

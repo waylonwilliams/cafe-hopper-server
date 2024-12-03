@@ -84,6 +84,29 @@ export const searchForCafes = async (req: Request, res: Response): Promise<void>
     // if a custom time is provided, filter the places by time
     if (cafeRequest.customTime) {
       const { customTime } = cafeRequest;
+      // Make sure types of day and time are correct
+      if (
+        customTime.day !== undefined &&
+        (typeof customTime.day !== 'number' || customTime.day < 0 || customTime.day > 6)
+      ) {
+        const response: CafeSearchResponse = {
+          cafes: [],
+          error: 'day must be a number between 0 and 6',
+        };
+        res.status(400).json(response);
+        return;
+      }
+      if (
+        customTime.time !== undefined &&
+        (typeof customTime.time !== 'string' || !/^\d{4}$/.test(customTime.time))
+      ) {
+        const response: CafeSearchResponse = {
+          cafes: [],
+          error: 'time must be a string in the format HHMM',
+        };
+        res.status(400).json(response);
+        return;
+      }
       const day = customTime.day || new Date().getDay();
       const time = customTime.time || '0000';
       // Set up arguments for the filter function
