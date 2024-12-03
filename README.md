@@ -15,7 +15,7 @@ This project makes use of Google Maps Places API as well as other technologies, 
 ```sh
 GOOGLE_MAPS_API_KEY=<YOUR_GOOGLE_MAPS_API_KEY>
 SUPABASE_URL=<YOUR_SUPABASE_URL>
-SUPABASE_KEY=<YOUR_SUPABASE_KEY>
+SUPABASE_SECRET=<YOUR_SUPABASE_SECRET>
 OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
 PORT=3000 # (or whatever port you want to run the server on)
 ```
