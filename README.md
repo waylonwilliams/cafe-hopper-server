@@ -1,8 +1,23 @@
 # Cafe Hopper Backend
 
+## Installation
+
 ```sh
+git clone git@github.com:waylonwilliams/cafe-hopper-server.git
 npm i
 npm run start
+```
+
+## API Keys
+
+This project makes use of Google Maps Places API as well as other technologies, so you will need to create a `.env` file in the root directory of the project and add the following keys:
+
+```sh
+GOOGLE_MAPS_API_KEY=<YOUR_GOOGLE_MAPS_API_KEY>
+SUPABASE_URL=<YOUR_SUPABASE_URL>
+SUPABASE_KEY=<YOUR_SUPABASE_KEY>
+OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
+PORT=3000 # (or whatever port you want to run the server on)
 ```
 
 ## Directory Structure
